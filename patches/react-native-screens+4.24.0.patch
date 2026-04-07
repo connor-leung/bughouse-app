@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-screens/src/fabric/ScreenStackHeaderConfigNativeComponent.ts b/node_modules/react-native-screens/src/fabric/ScreenStackHeaderConfigNativeComponent.ts
+index fcbb268..ff581df 100644
+--- a/node_modules/react-native-screens/src/fabric/ScreenStackHeaderConfigNativeComponent.ts
++++ b/node_modules/react-native-screens/src/fabric/ScreenStackHeaderConfigNativeComponent.ts
+@@ -47,7 +47,7 @@ export interface NativeProps extends ViewProps {
+   backTitle?: string;
+   backTitleFontFamily?: string;
+   backTitleFontSize?: CT.Int32;
+-  backTitleVisible?: CT.WithDefault<boolean, 'true'>;
++  backTitleVisible?: CT.WithDefault<boolean, true>;
+   color?: ColorValue;
+   direction?: CT.WithDefault<DirectionType, 'ltr'>;
+   hidden?: boolean;

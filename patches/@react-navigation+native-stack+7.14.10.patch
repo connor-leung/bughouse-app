@@ -1,0 +1,13 @@
+diff --git a/node_modules/@react-navigation/native-stack/lib/module/views/useHeaderConfigProps.js b/node_modules/@react-navigation/native-stack/lib/module/views/useHeaderConfigProps.js
+index 4afa851..c16325b 100644
+--- a/node_modules/@react-navigation/native-stack/lib/module/views/useHeaderConfigProps.js
++++ b/node_modules/@react-navigation/native-stack/lib/module/views/useHeaderConfigProps.js
+@@ -336,7 +336,7 @@ export function useHeaderConfigProps({
+     backButtonInCustomView,
+     backgroundColor: headerBackgroundColor,
+     backTitle: headerBackTitle,
+-    backTitleVisible: isBackButtonDisplayModeAvailable ? undefined : headerBackButtonDisplayMode !== 'minimal',
++    backTitleVisible: isBackButtonDisplayModeAvailable ? true : headerBackButtonDisplayMode !== 'minimal',
+     backButtonDisplayMode: isBackButtonDisplayModeAvailable ? headerBackButtonDisplayMode : undefined,
+     backTitleFontFamily,
+     backTitleFontSize,
