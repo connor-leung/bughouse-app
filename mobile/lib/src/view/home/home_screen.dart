@@ -9,6 +9,7 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final prefs = ref.watch(userPreferencesProvider).valueOrNull;
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -16,27 +17,49 @@ class HomeScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.person_outline),
-            onPressed: () => context.push('/name-entry'),
+            tooltip: 'Profile',
+            onPressed: () => context.push('/profile'),
           ),
         ],
       ),
-      body: Center(
+      body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(32),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Greeting
               if (prefs != null) ...[
                 Text(
-                  'Welcome, ${prefs.displayName}',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                  'Welcome back,',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
                 ),
-                const SizedBox(height: 32),
+                Text(
+                  prefs.displayName,
+                  style: theme.textTheme.headlineMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 48),
               ],
+              // Board icon placeholder
+              Center(
+                child: Icon(
+                  Icons.grid_on,
+                  size: 80,
+                  color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                ),
+              ),
+              const SizedBox(height: 48),
               ElevatedButton.icon(
-                icon: const Icon(Icons.sports_esports),
+                icon: const Icon(Icons.add),
+                label: const Text('Create Lobby'),
+                onPressed: () => context.push('/lobbies?create=true'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.list),
                 label: const Text('Browse Lobbies'),
                 onPressed: () => context.push('/lobbies'),
               ),

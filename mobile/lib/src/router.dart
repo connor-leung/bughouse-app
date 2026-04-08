@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'model/user/user_preferences.dart';
 import 'view/home/home_screen.dart';
 import 'view/user/name_entry_screen.dart';
+import 'view/user/profile_screen.dart';
 import 'view/lobby/lobby_list_screen.dart';
 import 'view/lobby/lobby_room_screen.dart';
 import 'view/game/game_screen.dart';
@@ -27,6 +28,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/home',
         builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => const ProfileScreen(),
       ),
       GoRoute(
         path: '/lobbies',
