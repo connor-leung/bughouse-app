@@ -12,6 +12,7 @@ import '../../widgets/game/piece_bank_bar.dart';
 import 'game_end_overlay.dart';
 import 'promotion_picker.dart';
 import 'quick_messages.dart';
+import 'team_chat_drawer.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key, required this.gameId});
@@ -34,6 +35,17 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      floatingActionButton: FloatingActionButton.small(
+        heroTag: 'chat',
+        tooltip: 'Team Chat',
+        onPressed: () => showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => TeamChatDrawer(gameId: widget.gameId),
+        ),
+        child: const Icon(Icons.chat_bubble_outline),
+      ),
       body: gameAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
