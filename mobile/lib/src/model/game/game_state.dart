@@ -113,8 +113,8 @@ class BughouseGameState {
         board1: BoardSnapshot.fromJson(json['board1'] as Map<String, dynamic>),
         board2: BoardSnapshot.fromJson(json['board2'] as Map<String, dynamic>),
         bank: GameBanks.fromJson(json['bank'] as Map<String, dynamic>),
-        clocksMs: List<int>.from(json['clocksMs'] as List),
-        players: (json['players'] as List<dynamic>)
+        clocksMs: List<int>.from((json['clocksMs'] as List?) ?? [0, 0, 0, 0]),
+        players: ((json['players'] as List?) ?? [])
             .map((p) => PlayerSlot.fromJson(p as Map<String, dynamic>))
             .toList(),
         result: json['result'] != null

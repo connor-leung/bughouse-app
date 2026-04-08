@@ -174,10 +174,11 @@ func (s *Session) Snapshot() map[string]any {
 	b2 := s.game.Boards[1]
 
 	return map[string]any{
-		"gameId": s.ID,
-		"board1": boardSnap(b1),
-		"board2": boardSnap(b2),
-		"bank":   bankSnap(s.game.Banks),
+		"gameId":  s.ID,
+		"board1":  boardSnap(b1),
+		"board2":  boardSnap(b2),
+		"bank":    bankSnap(s.game.Banks),
+		"players": playerSnap(s.Players),
 		"clocksMs": []int64{
 			s.clocks.Remaining(0),
 			s.clocks.Remaining(1),
@@ -211,6 +212,21 @@ func bankSnap(banks [2][2]engine.PieceBank) map[string]any {
 		"board2White": snap(banks[1][0]),
 		"board2Black": snap(banks[1][1]),
 	}
+}
+
+func playerSnap(players [4]*Player) []map[string]any {
+	out := make([]map[string]any, 0, 4)
+	for _, p := range players {
+		if p == nil {
+			continue
+		}
+		out = append(out, map[string]any{
+			"userId":      p.UserID,
+			"displayName": p.DisplayName,
+			"role":        string(p.Role),
+		})
+	}
+	return out
 }
 
 // --------------------------------------------------------------------------
