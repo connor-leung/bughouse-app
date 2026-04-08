@@ -14,12 +14,11 @@ class LobbyListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final lobbiesAsync = ref.watch(lobbyListProvider);
-    final pendingGame = ref.watch(pendingGameProvider);
 
     // Navigate to game when server fires game:starting
     ref.listen(pendingGameProvider, (_, next) {
       if (next != null) {
-        ref.read(pendingGameProvider.notifier).state = null;
+        ref.read(pendingGameProvider.notifier).clear();
         context.go('/game/${next.gameId}');
       }
     });

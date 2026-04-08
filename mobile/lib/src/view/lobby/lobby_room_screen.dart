@@ -19,7 +19,7 @@ class LobbyRoomScreen extends ConsumerWidget {
 
     ref.listen(pendingGameProvider, (_, next) {
       if (next != null) {
-        ref.read(pendingGameProvider.notifier).state = null;
+        ref.read(pendingGameProvider.notifier).clear();
         context.go('/game/${next.gameId}');
       }
     });

@@ -78,11 +78,19 @@ class CurrentLobbyNotifier extends StateNotifier<AsyncValue<Lobby?>> {
 // Pending game start (game:starting event)
 // ---------------------------------------------------------------------------
 
-final pendingGameProvider = StateProvider<GameStartingEvent?>((ref) {
-  ref.watch(lobbySocketServiceProvider).events.listen((event) {
-    if (event is GameStartingEvent) {
-      ref.read(pendingGameProvider.notifier).state = event;
-    }
-  });
-  return null;
-});
+final pendingGameProvider =
+    NotifierProvider<PendingGameNotifier, GameStartingEvent?>(
+  PendingGameNotifier.new,
+);
+
+class PendingGameNotifier extends Notifier<GameStartingEvent?> {
+  @override
+  GameStartingEvent? build() {
+    ref.watch(lobbySocketServiceProvider).events.listen((event) {
+      if (event is GameStartingEvent) state = event;
+    });
+    return null;
+  }
+
+  void clear() => state = null;
+}

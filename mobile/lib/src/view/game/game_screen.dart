@@ -242,10 +242,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     // Select a piece
     final piece = pos.board.pieceAt(sq);
     if (piece != null && piece.color == myColor) {
-      final targets = pos.legalMovesOf(sq)?.toSet() ?? {};
+      final squareSet = pos.legalMovesOf(sq);
       setState(() {
         _selectedSquare = sq;
-        _legalTargets = targets.map((m) => m.to).toSet();
+        _legalTargets = squareSet?.squares.toSet() ?? {};
       });
     } else {
       setState(() { _selectedSquare = null; _legalTargets = {}; });
@@ -256,8 +256,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     if (pos == null) return {};
     // All empty squares (simplified — server enforces pawn rank rule)
     final targets = <Square>{};
-    for (var i = 0; i < 64; i++) {
-      final sq = Square.fromInt(i);
+    for (final sq in Square.values) {
       if (pos.board.pieceAt(sq) == null) targets.add(sq);
     }
     return targets;

@@ -2,6 +2,7 @@ import 'package:dartchess/dartchess.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../utils/server_config.dart';
 import '../user/user_preferences.dart';
+import '../lobby/lobby.dart';
 import 'game_socket_service.dart';
 import 'game_state.dart';
 

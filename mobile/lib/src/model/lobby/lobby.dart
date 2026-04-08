@@ -1,6 +1,15 @@
 // Lobby data model — plain Dart (no codegen needed at this stage)
 
-enum BoardRole { board1White, board1Black, board2White, board2Black }
+enum BoardRole {
+  board1White,
+  board1Black,
+  board2White,
+  board2Black;
+
+  /// Team 1: board1White + board2Black. Team 2: board1Black + board2White.
+  int get team =>
+      (this == board1White || this == board2Black) ? 1 : 2;
+}
 
 enum LobbyStatus { waiting, starting, inProgress, finished }
 

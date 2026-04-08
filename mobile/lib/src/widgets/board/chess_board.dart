@@ -79,7 +79,7 @@ class _ChessBoardState extends State<ChessBoard> {
               // Pieces
               if (_position != null)
                 _BoardPieces(
-                  board: _position!.board,
+                  position: _position!,
                   orientation: widget.orientation,
                   squareSize: squareSize,
                 ),
@@ -168,12 +168,12 @@ class _BoardSquares extends StatelessWidget {
 
 class _BoardPieces extends StatelessWidget {
   const _BoardPieces({
-    required this.board,
+    required this.position,
     required this.orientation,
     required this.squareSize,
   });
 
-  final Board board;
+  final Position position;
   final Side orientation;
   final double squareSize;
 
@@ -181,10 +181,10 @@ class _BoardPieces extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        for (final entry in board.pieces.entries)
+        for (final (square, piece) in position.board.pieces)
           _PieceWidget(
-            square: entry.key,
-            piece: entry.value,
+            square: square,
+            piece: piece,
             orientation: orientation,
             squareSize: squareSize,
           ),
