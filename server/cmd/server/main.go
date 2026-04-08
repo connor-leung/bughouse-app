@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/connorleung/bughouse-server/internal/game"
 	"github.com/connorleung/bughouse-server/internal/lobby"
 	"github.com/connorleung/bughouse-server/internal/ws"
 )
@@ -16,7 +17,8 @@ func main() {
 	}
 
 	lobbyManager := lobby.NewManager()
-	handler := ws.NewHandler(lobbyManager)
+	gameManager := game.NewManager()
+	handler := ws.NewHandler(lobbyManager, gameManager)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
