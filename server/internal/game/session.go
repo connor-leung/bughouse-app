@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/connorleung/bughouse-server/internal/engine"
 	"github.com/connorleung/bughouse-server/internal/lobby"
@@ -112,17 +111,7 @@ func (s *Session) ApplyMove(userID string, req MoveRequest) error {
 
 	// Check game over
 	if over, losingBoard := s.game.IsOver(); over {
-		losingColor := s.game.Boards[losingBoard].ActiveColor.Opposite() // side that got mated
-		winTeam := losingColor.Opposite().TeamForBoard(engine.BoardIndex(losingBoard)) ^ 3 // flip
-		_ = winTeam
-		// Determine winning team from losing board + color
-		var wt int
-		lb := int(losingBoard)
-		lc := int(s.game.Boards[losingBoard].ActiveColor) // active = side to move = just got mated
-		_ = lb
-		_ = lc
-		wt = s.winTeamFromLoss(losingBoard)
-		s.end(wt, EndCheckmate)
+		s.end(s.winTeamFromLoss(losingBoard), EndCheckmate)
 		return nil
 	}
 
