@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../model/lobby/lobby.dart';
+import '../../model/lobby/lobby_notifier.dart';
 import '../../model/lobby/lobby_socket_service.dart';
 
 class CreateLobbySheet extends ConsumerStatefulWidget {
@@ -15,25 +17,33 @@ class _CreateLobbySheetState extends ConsumerState<CreateLobbySheet> {
   final _nameController = TextEditingController();
   TimeControl _selectedTC = TimeControl.presets[2]; // 3+0 default
   bool _creating = false;
+  StreamSubscription? _sub;
 
   @override
   void dispose() {
     _nameController.dispose();
+    _sub?.cancel();
     super.dispose();
   }
 
-  Future<void> _create() async {
+  void _create() {
     final name = _nameController.text.trim();
     if (name.isEmpty) return;
     setState(() => _creating = true);
-    ref.read(lobbySocketServiceProvider).createLobby(
-          name: name,
-          timeControl: _selectedTC,
-        );
-    if (mounted) {
-      Navigator.pop(context);
-      context.push('/lobbies');
-    }
+
+    final service = ref.read(lobbySocketServiceProvider);
+
+    // Listen for the server's lobby:created response, then navigate into the room
+    _sub = service.events.listen((event) {
+      if (event is LobbyCreatedEvent && mounted) {
+        _sub?.cancel();
+        ref.read(currentLobbyProvider.notifier).set(event.lobby);
+        Navigator.pop(context); // close sheet
+        context.push('/lobby/${event.lobby.id}');
+      }
+    });
+
+    service.createLobby(name: name, timeControl: _selectedTC);
   }
 
   @override

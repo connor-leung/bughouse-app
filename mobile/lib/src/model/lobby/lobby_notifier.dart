@@ -57,7 +57,10 @@ class CurrentLobbyNotifier extends StateNotifier<AsyncValue<Lobby?>> {
     _ref.watch(lobbySocketServiceProvider).events.listen((event) {
       switch (event) {
         case LobbyUpdatedEvent(:final lobby):
-          if (state.value?.id == lobby.id) {
+          // Update if this is the lobby we're currently tracking, OR if we
+          // haven't joined a lobby yet (covers the joiner path where state is
+          // set immediately before navigating and server echoes the update).
+          if (state.value == null || state.value?.id == lobby.id) {
             state = AsyncData(lobby);
           }
         case LobbyCreatedEvent(:final lobby):

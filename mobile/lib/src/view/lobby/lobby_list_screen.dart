@@ -87,6 +87,8 @@ class LobbyListScreen extends ConsumerWidget {
     final slotIdx = lobby.slots.indexWhere((s) => s == null);
     if (slotIdx == -1) return;
 
+    // Set lobby immediately so the room screen has data before the server echoes back
+    ref.read(currentLobbyProvider.notifier).set(lobby);
     ref.read(lobbySocketServiceProvider).joinLobby(lobby.id, slotIndex: slotIdx);
     context.push('/lobby/${lobby.id}');
   }
