@@ -27,6 +27,7 @@ func main() {
 	})
 	mux.HandleFunc("/lobby", handler.HandleLobby)
 	mux.HandleFunc("/game/", handler.HandleGame)
+	mux.HandleFunc("/test-game", game.HandleTestGame(gameManager))
 
 	log.Printf("Bughouse server listening on :%s", port)
 	if err := http.ListenAndServe(":"+port, mux); err != nil {
