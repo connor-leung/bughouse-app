@@ -34,40 +34,53 @@ func RunBot(s *Session, playerIdx int, stopCh <-chan struct{}) {
 // botMove attempts one move for the bot. Returns true if the game is over.
 func botMove(s *Session, playerIdx int) (gameOver bool) {
 	s.mu.Lock()
-	defer s.mu.Unlock()
 
 	p := s.Players[playerIdx]
 	if p == nil {
+		s.mu.Unlock()
 		return false
 	}
 
 	bIdx, err := boardIdxFromRole(p.Role)
 	if err != nil {
+		s.mu.Unlock()
 		return false
+	}
+
+	// If the game is already over, signal the bot to stop.
+	if over, _ := s.game.IsOver(); over {
+		s.mu.Unlock()
+		return true
 	}
 
 	b := s.game.Boards[bIdx]
 	if !isColorTurn(p.Role, b.ActiveColor) {
+		s.mu.Unlock()
 		return false // not this bot's turn
 	}
 
 	moves := s.game.LegalMovesFor(bIdx)
 	if len(moves) == 0 {
+		s.mu.Unlock()
 		return false
 	}
 
 	move := pickMove(moves)
 	if err := s.game.ApplyMove(bIdx, move); err != nil {
+		s.mu.Unlock()
 		return false
 	}
 
 	s.clocks.RecordMove(playerIdx, int64(b.ActiveColor))
 
 	if over, losingBoard := s.game.IsOver(); over {
-		s.end(s.winTeamFromLoss(losingBoard), EndCheckmate)
+		winTeam := s.winTeamFromLoss(losingBoard)
+		s.mu.Unlock()
+		s.end(winTeam, EndCheckmate)
 		return true
 	}
 
+	s.mu.Unlock()
 	if s.OnUpdate != nil {
 		s.OnUpdate(s)
 	}

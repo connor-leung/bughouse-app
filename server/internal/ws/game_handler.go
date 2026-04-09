@@ -74,11 +74,16 @@ func (h *gameHub) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.register(c)
 	defer h.unregister(c)
 
-	// Hook up session callbacks to broadcast via this hub
+	// Hook up session callbacks to broadcast via this hub.
+	// Chain OnEnd so any pre-existing handler (e.g. bot stopCh) still fires.
+	prevOnEnd := sess.OnEnd
 	sess.OnUpdate = func(s *game.Session) {
 		h.broadcastToSession(s, "game:update", s.Snapshot())
 	}
 	sess.OnEnd = func(s *game.Session, winTeam int, reason game.EndReason) {
+		if prevOnEnd != nil {
+			prevOnEnd(s, winTeam, reason)
+		}
 		h.broadcastToSession(s, "game:ended", map[string]any{
 			"winningTeam": winTeam,
 			"reason":      reason,

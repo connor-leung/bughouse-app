@@ -26,6 +26,7 @@ type Session struct {
 	game    *engine.BughouseGame
 	clocks  *ClockManager
 	mu      sync.Mutex
+	endOnce sync.Once
 
 	OnUpdate func(s *Session)
 	OnEnd    func(s *Session, winTeam int, reason EndReason)
@@ -85,25 +86,28 @@ type MoveRequest struct {
 // ApplyMove validates and applies a move from a player.
 func (s *Session) ApplyMove(userID string, req MoveRequest) error {
 	s.mu.Lock()
-	defer s.mu.Unlock()
 
 	bIdx, err := s.boardIdxForPlayer(userID)
 	if err != nil {
+		s.mu.Unlock()
 		return err
 	}
 
 	b := s.game.Boards[bIdx]
 	color := b.ActiveColor
 	if !s.isPlayerTurn(userID, bIdx, color) {
+		s.mu.Unlock()
 		return fmt.Errorf("not your turn")
 	}
 
 	m, err := s.parseMove(req, b)
 	if err != nil {
+		s.mu.Unlock()
 		return err
 	}
 
 	if err := s.game.ApplyMove(bIdx, m); err != nil {
+		s.mu.Unlock()
 		return err
 	}
 
@@ -111,10 +115,13 @@ func (s *Session) ApplyMove(userID string, req MoveRequest) error {
 
 	// Check game over
 	if over, losingBoard := s.game.IsOver(); over {
-		s.end(s.winTeamFromLoss(losingBoard), EndCheckmate)
+		winTeam := s.winTeamFromLoss(losingBoard)
+		s.mu.Unlock()
+		s.end(winTeam, EndCheckmate)
 		return nil
 	}
 
+	s.mu.Unlock()
 	if s.OnUpdate != nil {
 		s.OnUpdate(s)
 	}
@@ -148,21 +155,25 @@ func oppositeTeam(t int) int {
 }
 
 func (s *Session) end(winTeam int, reason EndReason) {
-	s.clocks.Stop()
-	if s.OnEnd != nil {
-		s.OnEnd(s, winTeam, reason)
-	}
+	s.endOnce.Do(func() {
+		s.clocks.Stop()
+		if s.OnEnd != nil {
+			s.OnEnd(s, winTeam, reason)
+		}
+	})
 }
 
 func (s *Session) Resign(userID string) {
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	for _, p := range s.Players {
 		if p != nil && p.UserID == userID {
-			s.end(oppositeTeam(p.Role.Team()), EndResignation)
+			winTeam := oppositeTeam(p.Role.Team())
+			s.mu.Unlock()
+			s.end(winTeam, EndResignation)
 			return
 		}
 	}
+	s.mu.Unlock()
 }
 
 // Snapshot returns a JSON-serialisable view of the full game state.
