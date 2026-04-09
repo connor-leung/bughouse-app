@@ -1,6 +1,7 @@
 import 'package:dartchess/dartchess.dart';
 import 'package:flutter/material.dart';
 import '../../model/game/game_state.dart';
+import '../board/piece_painter.dart';
 
 class PieceBankBar extends StatelessWidget {
   const PieceBankBar({
@@ -20,19 +21,9 @@ class PieceBankBar extends StatelessWidget {
 
   static const _roles = [Role.pawn, Role.knight, Role.bishop, Role.rook, Role.queen];
 
-  static const _whiteUnicode = {
-    Role.pawn: '♙', Role.knight: '♘', Role.bishop: '♗',
-    Role.rook: '♖', Role.queen: '♕',
-  };
-  static const _blackUnicode = {
-    Role.pawn: '♟', Role.knight: '♞', Role.bishop: '♝',
-    Role.rook: '♜', Role.queen: '♛',
-  };
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final unicodeMap = color == Side.white ? _whiteUnicode : _blackUnicode;
     final available = bank.available;
 
     if (available.isEmpty) {
@@ -81,10 +72,7 @@ class PieceBankBar extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          unicodeMap[role] ?? '?',
-                          style: const TextStyle(fontSize: 22, height: 1),
-                        ),
+                        PieceIcon(role: role, color: color, size: 32),
                         if (count > 1) ...[
                           const SizedBox(width: 2),
                           Text(
