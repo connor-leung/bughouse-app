@@ -127,6 +127,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                       interactive: isMyTurn,
                       onSquareTap: (sq) => _onSquareTap(
                           sq, pos, myColor, myRole, notifier, gameState),
+                      onPieceDrop: isMyTurn
+                          ? (from, to) => _onPieceDrop(
+                              from, to, pos, myColor, myRole, notifier)
+                          : null,
                     ),
                   ),
                 ),
@@ -194,6 +198,40 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         },
       ),
     );
+  }
+
+  void _onPieceDrop(
+    Square from,
+    Square to,
+    Position? pos,
+    Side myColor,
+    BoardRole myRole,
+    GameNotifier notifier,
+  ) {
+    if (pos == null) return;
+    final piece = pos.board.pieceAt(from);
+    if (piece == null || piece.color != myColor) return;
+
+    // Check promotion
+    if (piece.role == Role.pawn) {
+      final toRank = to.rank;
+      final isPromo = (myColor == Side.white && toRank == 7) ||
+          (myColor == Side.black && toRank == 0);
+      if (isPromo) {
+        _showPromotionPicker(context, from, to, notifier);
+        setState(() {
+          _selectedSquare = null;
+          _legalTargets = {};
+        });
+        return;
+      }
+    }
+
+    notifier.sendMove(from.name, to.name);
+    setState(() {
+      _selectedSquare = null;
+      _legalTargets = {};
+    });
   }
 
   void _onSquareTap(
