@@ -118,6 +118,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 label: const Text('Browse Lobbies'),
                 onPressed: () => context.push('/lobbies'),
               ),
+              const SizedBox(height: 24),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.bug_report_outlined),
+                label: const Text('Debug — Free Play'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: theme.colorScheme.onSurface
+                      .withValues(alpha: 0.5),
+                  side: BorderSide(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
+                  ),
+                ),
+                onPressed: () => context.push('/debug'),
+              ),
             ],
           ),
         ),

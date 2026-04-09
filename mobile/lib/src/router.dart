@@ -7,6 +7,7 @@ import 'view/user/profile_screen.dart';
 import 'view/lobby/lobby_list_screen.dart';
 import 'view/lobby/lobby_room_screen.dart';
 import 'view/game/game_screen.dart';
+import 'view/game/debug_game_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final hasName = ref.watch(hasDisplayNameProvider);
@@ -45,6 +46,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/game/:id',
         builder: (context, state) =>
             GameScreen(gameId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/debug',
+        builder: (context, state) => const DebugGameScreen(),
       ),
     ],
   );
