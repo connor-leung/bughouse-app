@@ -120,6 +120,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
               const SizedBox(height: 24),
               OutlinedButton.icon(
+                icon: const Icon(Icons.people_outline),
+                label: const Text('Local 2-Player'),
+                onPressed: () => context.push('/local-2p'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
                 icon: const Icon(Icons.bug_report_outlined),
                 label: const Text('Debug — Free Play'),
                 style: OutlinedButton.styleFrom(
