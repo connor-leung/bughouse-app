@@ -127,6 +127,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                       interactive: isMyTurn,
                       onSquareTap: (sq) => _onSquareTap(
                           sq, pos, myColor, myRole, notifier, gameState),
+                      onDragStart: isMyTurn
+                          ? (sq) => _onDragStart(sq, pos, myColor)
+                          : null,
                       onPieceDrop: isMyTurn
                           ? (from, to) => _onPieceDrop(
                               from, to, pos, myColor, myRole, notifier)
@@ -198,6 +201,18 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         },
       ),
     );
+  }
+
+  void _onDragStart(Square sq, Position? pos, Side myColor) {
+    if (pos == null) return;
+    final piece = pos.board.pieceAt(sq);
+    if (piece == null || piece.color != myColor) return;
+    final squareSet = pos.legalMovesOf(sq);
+    setState(() {
+      _selectedSquare = sq;
+      _selectedDropRole = null;
+      _legalTargets = squareSet?.squares.toSet() ?? {};
+    });
   }
 
   void _onPieceDrop(

@@ -5,6 +5,7 @@ import 'piece_painter.dart';
 
 typedef OnSquareTap = void Function(Square square);
 typedef OnPieceDrop = void Function(Square from, Square to);
+typedef OnDragStart = void Function(Square square);
 
 class ChessBoard extends StatefulWidget {
   const ChessBoard({
@@ -13,6 +14,7 @@ class ChessBoard extends StatefulWidget {
     required this.orientation,
     this.onSquareTap,
     this.onPieceDrop,
+    this.onDragStart,
     this.lastMoveFrom,
     this.lastMoveTo,
     this.isCheck = false,
@@ -25,6 +27,7 @@ class ChessBoard extends StatefulWidget {
   final Side orientation;
   final OnSquareTap? onSquareTap;
   final OnPieceDrop? onPieceDrop;
+  final OnDragStart? onDragStart;
   final Square? lastMoveFrom;
   final Square? lastMoveTo;
   final bool isCheck;
@@ -92,7 +95,10 @@ class _ChessBoardState extends State<ChessBoard> {
                   squareSize: squareSize,
                   interactive: widget.interactive,
                   draggingFrom: _draggingFrom,
-                  onDragStart: (sq) => setState(() => _draggingFrom = sq),
+                  onDragStart: (sq) {
+                    setState(() => _draggingFrom = sq);
+                    widget.onDragStart?.call(sq);
+                  },
                   onDragEnd: () => setState(() => _draggingFrom = null),
                 ),
               // Tap layer (behind nothing — receives taps for click-to-move)
