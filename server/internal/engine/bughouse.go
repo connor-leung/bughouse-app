@@ -58,6 +58,11 @@ func (g *BughouseGame) ApplyMove(bIdx BoardIndex, m Move) error {
 	// Apply move
 	g.Boards[bIdx] = applyMove(b, m)
 
+	// Consume the dropped piece from the bank
+	if m.Type == Drop {
+		bank.Remove(m.DropRole)
+	}
+
 	// Track promoted squares
 	g.updatePromotedSquares(bIdx, m)
 

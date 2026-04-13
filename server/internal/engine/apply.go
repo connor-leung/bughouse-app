@@ -54,7 +54,7 @@ func applyMove(b *Board, m Move) *Board {
 
 	// Half-move clock
 	if m.Type == Capture || m.Type == EnPassant || m.Type == PromotionCapture ||
-		(b.Squares[m.From] != nil && b.Squares[m.From].Role == Pawn) {
+		(m.From != NoSquare && b.Squares[m.From] != nil && b.Squares[m.From].Role == Pawn) {
 		next.HalfMoveClock = 0
 	} else {
 		next.HalfMoveClock++
