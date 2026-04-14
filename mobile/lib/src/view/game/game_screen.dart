@@ -172,16 +172,40 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   flex: 2,
                   child: Row(
                     children: [
-                      // Partner's board (mini, read-only)
-                      Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: SizedBox(
-                          width: 120,
-                          child: ChessBoard(
-                            fen: partnerBoard.fen,
-                            orientation: myColor.opposite,
-                            interactive: false,
-                            isCheck: partnerBoard.isCheck,
+                      // Partner's board (mini, read-only, tappable to expand)
+                      GestureDetector(
+                        onTap: () => _showPartnerBoard(
+                          context,
+                          partnerBoard,
+                          myColor,
+                          gameState,
+                          myRole,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Stack(
+                            alignment: Alignment.topRight,
+                            children: [
+                              SizedBox(
+                                width: 120,
+                                child: ChessBoard(
+                                  fen: partnerBoard.fen,
+                                  orientation: myColor.opposite,
+                                  interactive: false,
+                                  isCheck: partnerBoard.isCheck,
+                                  lastMoveFrom: partnerBoard.lastFrom,
+                                  lastMoveTo: partnerBoard.lastTo,
+                                ),
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.all(2),
+                                child: Icon(
+                                  Icons.open_in_full,
+                                  size: 14,
+                                  color: Colors.white70,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -199,6 +223,85 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _showPartnerBoard(
+    BuildContext context,
+    BoardSnapshot partnerBoard,
+    Side myColor,
+    BughouseGameState gameState,
+    BoardRole myRole,
+  ) {
+    final partnerRole = _partnerRole(myRole);
+    final partnerClockIdx = _clockIndex(partnerRole);
+    final partnerName = _playerName(gameState, partnerRole);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.75,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (_, controller) => Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          ),
+          child: Column(
+            children: [
+              // Handle bar
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              // Partner name + clock
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        partnerName,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                    ChessClock(
+                      remainingMs: gameState.clocksMs[partnerClockIdx],
+                      isActive: false,
+                    ),
+                  ],
+                ),
+              ),
+              // Full-size partner board
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: ChessBoard(
+                    fen: partnerBoard.fen,
+                    orientation: myColor.opposite,
+                    interactive: false,
+                    isCheck: partnerBoard.isCheck,
+                    lastMoveFrom: partnerBoard.lastFrom,
+                    lastMoveTo: partnerBoard.lastTo,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -363,6 +466,15 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       BoardRole.board1Black => BoardRole.board1White,
       BoardRole.board2White => BoardRole.board2Black,
       BoardRole.board2Black => BoardRole.board2White,
+    };
+  }
+
+  BoardRole _partnerRole(BoardRole myRole) {
+    return switch (myRole) {
+      BoardRole.board1White => BoardRole.board2Black,
+      BoardRole.board1Black => BoardRole.board2White,
+      BoardRole.board2White => BoardRole.board1Black,
+      BoardRole.board2Black => BoardRole.board1White,
     };
   }
 
