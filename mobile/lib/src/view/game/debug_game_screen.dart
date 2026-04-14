@@ -420,6 +420,7 @@ class _DebugGameScreenState extends ConsumerState<DebugGameScreen> {
                     _handleTap(context, 0, sq, pos1, n, s),
                 onPieceDrop: (from, to) => n.dropPiece(0, from, to),
                 onDropRoleTap: (role) => n.tapDropRole(0, role),
+                onPlayAgain: n.reset,
               ),
 
               const Divider(height: 1, thickness: 2),
@@ -442,6 +443,7 @@ class _DebugGameScreenState extends ConsumerState<DebugGameScreen> {
                     _handleTap(context, 1, sq, pos2, n, s),
                 onPieceDrop: (from, to) => n.dropPiece(1, from, to),
                 onDropRoleTap: (role) => n.tapDropRole(1, role),
+                onPlayAgain: n.reset,
               ),
             ],
           ),
@@ -507,6 +509,7 @@ class _BoardSection extends StatelessWidget {
     required this.onSquareTap,
     required this.onPieceDrop,
     required this.onDropRoleTap,
+    required this.onPlayAgain,
   });
 
   final String label;
@@ -523,6 +526,7 @@ class _BoardSection extends StatelessWidget {
   final void Function(Square) onSquareTap;
   final void Function(Square from, Square to) onPieceDrop;
   final void Function(Role) onDropRoleTap;
+  final VoidCallback onPlayAgain;
 
   @override
   Widget build(BuildContext context) {
@@ -567,7 +571,11 @@ class _BoardSection extends StatelessWidget {
                   onPieceDrop: gameOver ? null : onPieceDrop,
                 ),
                 if (gameOver)
-                  _GameOverOverlay(outcome: outcome!, fen: fen),
+                  _GameOverOverlay(
+                    outcome: outcome!,
+                    fen: fen,
+                    onPlayAgain: onPlayAgain,
+                  ),
               ],
             ),
           ),
@@ -582,10 +590,15 @@ class _BoardSection extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _GameOverOverlay extends StatelessWidget {
-  const _GameOverOverlay({required this.outcome, required this.fen});
+  const _GameOverOverlay({
+    required this.outcome,
+    required this.fen,
+    required this.onPlayAgain,
+  });
 
   final Outcome outcome;
   final String fen;
+  final VoidCallback onPlayAgain;
 
   @override
   Widget build(BuildContext context) {
@@ -635,6 +648,12 @@ class _GameOverOverlay extends StatelessWidget {
                               .onSurface
                               .withValues(alpha: 0.6),
                         ),
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Play Again'),
+                    onPressed: onPlayAgain,
                   ),
                 ],
               ),
