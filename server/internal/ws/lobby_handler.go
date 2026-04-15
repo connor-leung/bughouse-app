@@ -6,20 +6,23 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/connorleung/bughouse-server/internal/game"
 	"github.com/connorleung/bughouse-server/internal/lobby"
 )
 
 // lobbyHub tracks all connected lobby clients and broadcasts updates.
 type lobbyHub struct {
-	mu      sync.RWMutex
-	clients map[string]*Client // keyed by userID
-	manager *lobby.Manager
+	mu          sync.RWMutex
+	clients     map[string]*Client // keyed by userID
+	manager     *lobby.Manager
+	gameManager *game.Manager
 }
 
-func newLobbyHub(m *lobby.Manager) *lobbyHub {
+func newLobbyHub(m *lobby.Manager, gm *game.Manager) *lobbyHub {
 	return &lobbyHub{
-		clients: make(map[string]*Client),
-		manager: m,
+		clients:     make(map[string]*Client),
+		manager:     m,
+		gameManager: gm,
 	}
 }
 
@@ -126,7 +129,12 @@ func (h *lobbyHub) handleMessage(c *Client, env Envelope) {
 			c.Send("lobby:error", map[string]string{"message": "cannot start game"})
 			return
 		}
-		l.Status = lobby.StatusStarting
+
+		// Create the game session before notifying players
+		sess := game.NewSession(l.ID, l.Slots, l.TimeControl)
+		h.gameManager.Add(sess)
+		l.Status = lobby.StatusInProgress
+
 		// Notify each player of their assigned role
 		h.mu.RLock()
 		for i, slot := range l.Slots {
@@ -135,7 +143,7 @@ func (h *lobbyHub) handleMessage(c *Client, env Envelope) {
 			}
 			if player, exists := h.clients[slot.UserID]; exists {
 				player.Send("game:starting", map[string]any{
-					"gameId": l.ID, // reuse lobby ID as game ID for now
+					"gameId": l.ID,
 					"role":   l.Slots[i].Role,
 				})
 			}

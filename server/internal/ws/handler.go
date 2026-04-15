@@ -15,7 +15,7 @@ type Handler struct {
 
 func NewHandler(lm *lobby.Manager, gm *game.Manager) *Handler {
 	return &Handler{
-		Lobby: newLobbyHub(lm),
+		Lobby: newLobbyHub(lm, gm),
 		Game:  newGameHub(gm),
 	}
 }
