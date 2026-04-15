@@ -1,5 +1,12 @@
 import { create } from 'zustand';
-import { BoardRole, Lobby } from '@/lib/types';
+import { BoardRole, Lobby, TimeControl } from '@/lib/types';
+
+interface LobbyActions {
+  createLobby: (name: string, timeControl: TimeControl) => void;
+  joinLobby: (lobbyId: string, slotIndex: number) => void;
+  leaveLobby: (lobbyId: string) => void;
+  startGame: (lobbyId: string) => void;
+}
 
 interface LobbyStore {
   lobbies: Lobby[];
@@ -7,6 +14,7 @@ interface LobbyStore {
   pendingGame: { gameId: string; role: BoardRole } | null;
   error: string | null;
   isConnected: boolean;
+  actions: LobbyActions | null;
 
   setLobbies: (lobbies: Lobby[]) => void;
   upsertLobby: (lobby: Lobby) => void;
@@ -14,6 +22,7 @@ interface LobbyStore {
   setPendingGame: (g: { gameId: string; role: BoardRole } | null) => void;
   setError: (e: string | null) => void;
   setConnected: (v: boolean) => void;
+  setActions: (a: LobbyActions | null) => void;
 }
 
 export const useLobbyStore = create<LobbyStore>((set) => ({
@@ -22,6 +31,7 @@ export const useLobbyStore = create<LobbyStore>((set) => ({
   pendingGame: null,
   error: null,
   isConnected: false,
+  actions: null,
 
   setLobbies: (lobbies) => set({ lobbies }),
   upsertLobby: (lobby) =>
@@ -38,4 +48,5 @@ export const useLobbyStore = create<LobbyStore>((set) => ({
   setPendingGame: (pendingGame) => set({ pendingGame }),
   setError: (error) => set({ error }),
   setConnected: (isConnected) => set({ isConnected }),
+  setActions: (actions) => set({ actions }),
 }));

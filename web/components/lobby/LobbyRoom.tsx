@@ -3,8 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLobbyStore } from '@/store/lobbyStore';
-import { useLobbySocket } from '@/lib/hooks/useLobbySocket';
-import { getUserId, getDisplayName } from '@/lib/identity';
+import { getUserId } from '@/lib/identity';
 import { BoardRole, Lobby } from '@/lib/types';
 import PlayerSlotTile from './PlayerSlotTile';
 
@@ -54,24 +53,21 @@ function TeamSection({
 export default function LobbyRoom({ lobbyId }: Props) {
   const router = useRouter();
   const userId = getUserId();
-  const displayName = getDisplayName();
-  const { leaveLobby, startGame } = useLobbySocket(userId, displayName);
+  const actions = useLobbyStore((s) => s.actions);
   const lobby = useLobbyStore((s) => s.lobbies.find((l) => l.id === lobbyId) ?? s.currentLobby);
-  const { joinLobby } = useLobbySocket(userId, displayName);
-
-  // Set current lobby in store when we find it
   const setCurrentLobby = useLobbyStore((s) => s.setCurrentLobby);
+
   useEffect(() => {
     if (lobby) setCurrentLobby(lobby);
   }, [lobby, setCurrentLobby]);
 
   function handleLeave() {
-    leaveLobby(lobbyId);
+    actions?.leaveLobby(lobbyId);
     router.push('/lobbies');
   }
 
-  function handleJoin(role: BoardRole, slotIndex: number) {
-    joinLobby(lobbyId, slotIndex);
+  function handleJoin(_role: BoardRole, slotIndex: number) {
+    actions?.joinLobby(lobbyId, slotIndex);
   }
 
   if (!lobby) {
@@ -119,7 +115,7 @@ export default function LobbyRoom({ lobbyId }: Props) {
 
       {isHost && (
         <button
-          onClick={() => startGame(lobbyId)}
+          onClick={() => actions?.startGame(lobbyId)}
           disabled={!isFull}
           className="mt-8 w-full bg-green-700 hover:bg-green-600 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl py-3 font-bold text-lg transition-colors"
         >

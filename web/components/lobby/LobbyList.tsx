@@ -3,8 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLobbyStore } from '@/store/lobbyStore';
-import { useLobbySocket } from '@/lib/hooks/useLobbySocket';
-import { getUserId, getDisplayName } from '@/lib/identity';
 import LobbyCard from './LobbyCard';
 import CreateLobbyModal from './CreateLobbyModal';
 
@@ -13,11 +11,11 @@ export default function LobbyList() {
   const lobbies = useLobbyStore((s) => s.lobbies);
   const error = useLobbyStore((s) => s.error);
   const isConnected = useLobbyStore((s) => s.isConnected);
-  const { joinLobby, createLobby } = useLobbySocket(getUserId(), getDisplayName());
+  const actions = useLobbyStore((s) => s.actions);
   const [showCreate, setShowCreate] = useState(false);
 
   function handleJoin(lobbyId: string, slotIndex: number) {
-    joinLobby(lobbyId, slotIndex);
+    actions?.joinLobby(lobbyId, slotIndex);
     router.push(`/lobbies/${lobbyId}`);
   }
 
@@ -70,7 +68,7 @@ export default function LobbyList() {
         <CreateLobbyModal
           onClose={() => setShowCreate(false)}
           onCreate={(name, tc) => {
-            createLobby(name, tc);
+            actions?.createLobby(name, tc);
             setShowCreate(false);
           }}
         />
