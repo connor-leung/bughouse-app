@@ -12,6 +12,7 @@ interface LobbyStore {
   lobbies: Lobby[];
   currentLobby: Lobby | null;
   pendingGame: { gameId: string; role: BoardRole } | null;
+  pendingLobbyId: string | null;
   error: string | null;
   isConnected: boolean;
   actions: LobbyActions | null;
@@ -20,6 +21,7 @@ interface LobbyStore {
   upsertLobby: (lobby: Lobby) => void;
   setCurrentLobby: (lobby: Lobby | null) => void;
   setPendingGame: (g: { gameId: string; role: BoardRole } | null) => void;
+  setPendingLobbyId: (id: string | null) => void;
   setError: (e: string | null) => void;
   setConnected: (v: boolean) => void;
   setActions: (a: LobbyActions | null) => void;
@@ -29,6 +31,7 @@ export const useLobbyStore = create<LobbyStore>((set) => ({
   lobbies: [],
   currentLobby: null,
   pendingGame: null,
+  pendingLobbyId: null,
   error: null,
   isConnected: false,
   actions: null,
@@ -46,6 +49,7 @@ export const useLobbyStore = create<LobbyStore>((set) => ({
     }),
   setCurrentLobby: (currentLobby) => set({ currentLobby }),
   setPendingGame: (pendingGame) => set({ pendingGame }),
+  setPendingLobbyId: (pendingLobbyId) => set({ pendingLobbyId }),
   setError: (error) => set({ error }),
   setConnected: (isConnected) => set({ isConnected }),
   setActions: (actions) => set({ actions }),

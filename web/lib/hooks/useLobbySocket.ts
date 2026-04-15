@@ -36,11 +36,16 @@ export function useLobbySocket(userId: string, displayName: string) {
         const msg: WsEnvelope = JSON.parse(e.data);
         switch (msg.type) {
           case 'lobby:list': {
-            const data = msg.data as { lobbies: Lobby[] };
-            store.setLobbies(data.lobbies ?? []);
+            // server sends the array directly as data
+            store.setLobbies((msg.data as Lobby[]) ?? []);
             break;
           }
-          case 'lobby:created':
+          case 'lobby:created': {
+            const lobby = msg.data as Lobby;
+            store.upsertLobby(lobby);
+            store.setPendingLobbyId(lobby.id);
+            break;
+          }
           case 'lobby:updated': {
             store.upsertLobby(msg.data as Lobby);
             break;
