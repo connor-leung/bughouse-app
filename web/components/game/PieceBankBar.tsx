@@ -1,13 +1,10 @@
 'use client';
 
+import { defaultPieces } from 'react-chessboard';
 import { PieceBank, PIECE_ROLES } from '@/lib/types';
 
-const PIECE_UNICODE: Record<string, { white: string; black: string }> = {
-  queen:  { white: '♛', black: '♛' },
-  rook:   { white: '♜', black: '♜' },
-  bishop: { white: '♝', black: '♝' },
-  knight: { white: '♞', black: '♞' },
-  pawn:   { white: '♟', black: '♟' },
+const ROLE_LETTER: Record<string, string> = {
+  queen: 'Q', rook: 'R', bishop: 'B', knight: 'N', pawn: 'P',
 };
 
 interface Props {
@@ -43,7 +40,9 @@ export default function PieceBankBar({ bank, color, selectedPiece, onSelectPiece
               ${isSelected ? 'bg-yellow-600 text-white ring-2 ring-yellow-400' : 'bg-gray-800 hover:bg-gray-700 text-gray-200'}
               ${disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
           >
-            <span>{PIECE_UNICODE[role]?.[color] ?? role}</span>
+            <span className="w-8 h-8 flex items-center justify-center">
+              {defaultPieces[(color === 'white' ? 'w' : 'b') + ROLE_LETTER[role]]?.({ svgStyle: { width: '32px', height: '32px' } })}
+            </span>
             {count > 1 && <span className="text-xs font-bold">×{count}</span>}
           </button>
         );
