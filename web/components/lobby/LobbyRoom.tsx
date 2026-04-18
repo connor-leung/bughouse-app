@@ -88,7 +88,7 @@ export default function LobbyRoom({ lobbyId }: Props) {
   const tcLabel = incrementSeconds > 0 ? `${minutes}+${incrementSeconds}` : `${minutes}+0`;
 
   return (
-    <div className="min-h-screen p-6 max-w-md mx-auto">
+    <div className="min-h-screen p-4 sm:p-6 max-w-md mx-auto">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={handleLeave} className="text-gray-400 hover:text-gray-200">
           ← Back

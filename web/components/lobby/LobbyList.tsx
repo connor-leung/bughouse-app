@@ -23,7 +23,7 @@ export default function LobbyList() {
   const waitingLobbies = lobbies.filter((l) => l.status === 'waiting');
 
   return (
-    <div className="min-h-screen p-6 max-w-2xl mx-auto">
+    <div className="min-h-screen p-4 sm:p-6 max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <button onClick={() => router.push('/home')} className="text-gray-400 hover:text-gray-200">
@@ -36,7 +36,7 @@ export default function LobbyList() {
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          className="bg-blue-600 hover:bg-blue-500 rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
+          className="bg-blue-600 hover:bg-blue-500 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors"
         >
           + Create
         </button>

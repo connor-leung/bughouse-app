@@ -26,7 +26,7 @@ export default function NameEntryPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="bg-gray-900 rounded-2xl p-8 w-full max-w-sm shadow-xl">
+      <div className="bg-gray-900 rounded-2xl p-6 sm:p-8 w-full max-w-sm shadow-xl mx-4 sm:mx-0">
         <h1 className="text-2xl font-bold text-center mb-6">Welcome to Bughouse</h1>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input

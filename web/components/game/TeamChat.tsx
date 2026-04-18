@@ -8,11 +8,12 @@ interface Props {
   myUserId: string;
   onSend: (text: string) => void;
   onClose: () => void;
+  isMobile?: boolean;
 }
 
 const QUICK_MESSAGES = ['Send piece!', 'Hold on!', 'Good move!', 'Thanks!'];
 
-export default function TeamChat({ messages, myUserId, onSend, onClose }: Props) {
+export default function TeamChat({ messages, myUserId, onSend, onClose, isMobile }: Props) {
   const [input, setInput] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -27,8 +28,17 @@ export default function TeamChat({ messages, myUserId, onSend, onClose }: Props)
     setInput('');
   }
 
+  const containerClass = isMobile
+    ? 'fixed bottom-0 left-0 right-0 h-[70vh] rounded-t-2xl bg-gray-900 border-t border-gray-700 flex flex-col z-40 shadow-2xl'
+    : 'fixed right-0 top-0 h-full w-80 bg-gray-900 border-l border-gray-700 flex flex-col z-40 shadow-2xl';
+
   return (
-    <div className="fixed right-0 top-0 h-full w-80 bg-gray-900 border-l border-gray-700 flex flex-col z-40 shadow-2xl">
+    <div className={containerClass}>
+      {isMobile && (
+        <div className="flex justify-center pt-2 pb-1">
+          <div className="w-10 h-1 rounded-full bg-gray-600" />
+        </div>
+      )}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
         <span className="font-semibold">Team Chat</span>
         <button onClick={onClose} className="text-gray-400 hover:text-gray-200 text-xl">×</button>

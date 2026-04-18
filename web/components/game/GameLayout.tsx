@@ -6,6 +6,7 @@ import { Chess } from 'chess.js';
 import { getUserId } from '@/lib/identity';
 import { useGameSocket } from '@/lib/hooks/useGameSocket';
 import { useChessClocks } from '@/lib/hooks/useChessClocks';
+import { useBoardWidth } from '@/lib/hooks/useBoardWidth';
 import { useGameStore } from '@/store/gameStore';
 import { BoardRole, clockIndex, opponentRole, partnerRole, roleBoard, roleColor } from '@/lib/types';
 import InteractiveBoard from './InteractiveBoard';
@@ -43,6 +44,7 @@ export default function GameLayout({ gameId }: Props) {
   const [selectedDropPiece, setSelectedDropPiece] = useState<string | null>(null);
   const [unread, setUnread] = useState(0);
 
+  const { mainBoardWidth, partnerBoardWidth, isMobile } = useBoardWidth();
   const clocks = useChessClocks(gameState, !!gameResult);
 
   // Reset store on unmount
@@ -115,10 +117,10 @@ export default function GameLayout({ gameId }: Props) {
     <div className="min-h-screen bg-gray-950 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2 bg-gray-900 border-b border-gray-800">
-        <button onClick={() => router.push('/home')} className="text-gray-400 hover:text-gray-200 text-sm">
+        <button onClick={() => router.push('/home')} className="text-gray-400 hover:text-gray-200 text-sm py-1">
           ← Home
         </button>
-        <span className="text-sm text-gray-500 font-mono">{gameId.slice(0, 8)}</span>
+        <span className="hidden sm:block text-sm text-gray-500 font-mono">{gameId.slice(0, 8)}</span>
         <div className="flex items-center gap-2">
           <span className={`text-xs px-2 py-0.5 rounded-full ${isConnected ? 'bg-green-900 text-green-300' : 'bg-gray-700 text-gray-400'}`}>
             {isConnected ? 'Live' : '...'}
@@ -151,7 +153,7 @@ export default function GameLayout({ gameId }: Props) {
 
       {/* Main content */}
       <div className="flex flex-1 overflow-auto">
-        <div className={`flex-1 flex flex-col items-center justify-center gap-4 p-4 ${showChat ? 'mr-80' : ''}`}>
+        <div className={`flex-1 flex flex-col items-center justify-center gap-4 p-4 ${showChat && !isMobile ? 'mr-80' : ''}`}>
 
           {/* Opponent clock (top) */}
           <div className="flex items-center gap-3">
@@ -185,7 +187,7 @@ export default function GameLayout({ gameId }: Props) {
               onMove={handleMove}
               onDrop={handleDrop}
               onClearDrop={() => setSelectedDropPiece(null)}
-              boardWidth={420}
+              boardWidth={mainBoardWidth}
             />
           </div>
 
@@ -199,7 +201,7 @@ export default function GameLayout({ gameId }: Props) {
           </div>
 
           {/* Partner board section */}
-          <div className="flex flex-col items-center gap-2 mt-4 border-t border-gray-800 pt-4 w-full max-w-[420px]">
+          <div className="flex flex-col items-center gap-2 mt-4 border-t border-gray-800 pt-4 w-full" style={{ maxWidth: mainBoardWidth }}>
             <div className="flex items-center justify-between w-full">
               <p className="text-xs text-gray-500">Partner&apos;s board</p>
               <div className="flex items-center gap-2">
@@ -216,7 +218,7 @@ export default function GameLayout({ gameId }: Props) {
             <ReadOnlyBoard
               snapshot={partnerBoardSnapshot}
               orientation={partnerColor}
-              boardWidth={280}
+              boardWidth={partnerBoardWidth}
             />
 
             <div className="bg-gray-900 rounded-xl p-2 w-full">
@@ -240,6 +242,7 @@ export default function GameLayout({ gameId }: Props) {
           myUserId={userId}
           onSend={sendMessage}
           onClose={() => setShowChat(false)}
+          isMobile={isMobile}
         />
       )}
 
