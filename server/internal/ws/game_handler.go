@@ -12,27 +12,31 @@ import (
 
 // gameHub manages WebSocket clients inside a game session.
 type gameHub struct {
-	mu      sync.RWMutex
-	clients map[string]*Client // keyed by userID
-	manager *game.Manager
+	mu           sync.RWMutex
+	clients      map[string]*Client // keyed by userID
+	clientGameID map[string]string  // userID → game session ID they are watching
+	manager      *game.Manager
 }
 
 func newGameHub(gm *game.Manager) *gameHub {
 	return &gameHub{
-		clients: make(map[string]*Client),
-		manager: gm,
+		clients:      make(map[string]*Client),
+		clientGameID: make(map[string]string),
+		manager:      gm,
 	}
 }
 
-func (h *gameHub) register(c *Client) {
+func (h *gameHub) register(c *Client, gameID string) {
 	h.mu.Lock()
 	h.clients[c.UserID] = c
+	h.clientGameID[c.UserID] = gameID
 	h.mu.Unlock()
 }
 
 func (h *gameHub) unregister(c *Client) {
 	h.mu.Lock()
 	delete(h.clients, c.UserID)
+	delete(h.clientGameID, c.UserID)
 	h.mu.Unlock()
 }
 
@@ -44,7 +48,10 @@ func (h *gameHub) broadcastToSession(s *game.Session, msgType string, data any) 
 			continue
 		}
 		if c, ok := h.clients[p.UserID]; ok {
-			c.Send(msgType, data)
+			// Only send if the client is still watching this session.
+			if h.clientGameID[p.UserID] == s.ID {
+				c.Send(msgType, data)
+			}
 		}
 	}
 }
@@ -71,7 +78,7 @@ func (h *gameHub) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.register(c)
+	h.register(c, gameID)
 	defer h.unregister(c)
 
 	// Hook up session callbacks to broadcast via this hub.

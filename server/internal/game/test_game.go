@@ -2,6 +2,7 @@ package game
 
 import (
 	"encoding/json"
+	"math/rand"
 	"net/http"
 
 	"github.com/connorleung/bughouse-server/internal/lobby"
@@ -30,7 +31,7 @@ func HandleTestGame(gm *Manager) http.HandlerFunc {
 			{UserID: "bot-3", DisplayName: "Bot 3", Role: lobby.Board2Black},
 		}
 
-		sess := NewSession("test-"+userID, slots, tc)
+		sess := NewSession(generateTestID(), slots, tc)
 		gm.Add(sess)
 
 		// Start bots for slots 1, 2, 3
@@ -50,4 +51,13 @@ func HandleTestGame(gm *Manager) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{"gameId": sess.ID})
 	}
+}
+
+func generateTestID() string {
+	const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+	b := make([]byte, 8)
+	for i := range b {
+		b[i] = chars[rand.Intn(len(chars))]
+	}
+	return "T" + string(b)
 }

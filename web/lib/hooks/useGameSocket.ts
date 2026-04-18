@@ -35,6 +35,7 @@ export function useGameSocket(gameId: string, userId: string) {
         case 'game:state':
         case 'game:update': {
           const state = msg.data as GameState;
+          if (state.gameId !== gameId) break;
           store.setGameState(state);
           if (!store.myRole) {
             const slot = state.players.find((p) => p.userId === userId);
