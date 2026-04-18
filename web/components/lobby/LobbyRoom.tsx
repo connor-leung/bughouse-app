@@ -56,6 +56,8 @@ export default function LobbyRoom({ lobbyId }: Props) {
   const actions = useLobbyStore((s) => s.actions);
   const lobby = useLobbyStore((s) => s.lobbies.find((l) => l.id === lobbyId) ?? s.currentLobby);
   const setCurrentLobby = useLobbyStore((s) => s.setCurrentLobby);
+  const error = useLobbyStore((s) => s.error);
+  const setError = useLobbyStore((s) => s.setError);
 
   useEffect(() => {
     if (lobby) setCurrentLobby(lobby);
@@ -67,6 +69,7 @@ export default function LobbyRoom({ lobbyId }: Props) {
   }
 
   function handleJoin(_role: BoardRole, slotIndex: number) {
+    setError(null);
     actions?.joinLobby(lobbyId, slotIndex);
   }
 
@@ -95,6 +98,12 @@ export default function LobbyRoom({ lobbyId }: Props) {
           <p className="text-sm text-gray-400">{tcLabel} min &middot; {filled}/4 players</p>
         </div>
       </div>
+
+      {error && (
+        <div className="bg-red-900/50 border border-red-700 rounded-lg p-3 mb-2 text-red-300 text-sm">
+          {error}
+        </div>
+      )}
 
       <div className="flex flex-col gap-6">
         <TeamSection

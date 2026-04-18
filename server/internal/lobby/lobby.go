@@ -76,6 +76,8 @@ func (l *Lobby) Join(userID, displayName string, slotIndex int) error {
 	if slotIndex < 0 || slotIndex > 3 {
 		return fmt.Errorf("invalid slot index")
 	}
+	// Leave any existing slot first
+	l.Leave(userID)
 	if l.Slots[slotIndex] != nil {
 		return fmt.Errorf("slot already taken")
 	}

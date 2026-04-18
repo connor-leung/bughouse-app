@@ -1,15 +1,19 @@
 'use client';
 
+import { getUserId } from '@/lib/identity';
 import { Lobby } from '@/lib/types';
 
 interface Props {
   lobby: Lobby;
   onJoin: (slotIndex: number) => void;
+  onView: () => void;
 }
 
-export default function LobbyCard({ lobby, onJoin }: Props) {
+export default function LobbyCard({ lobby, onJoin, onView }: Props) {
+  const userId = getUserId();
   const filled = lobby.slots.filter(Boolean).length;
   const firstEmpty = lobby.slots.findIndex((s) => s === null);
+  const alreadyIn = lobby.slots.some((s) => s?.userId === userId);
   const { minutes, incrementSeconds } = lobby.timeControl;
   const tcLabel = incrementSeconds > 0 ? `${minutes}+${incrementSeconds}` : `${minutes}+0`;
 
@@ -21,13 +25,22 @@ export default function LobbyCard({ lobby, onJoin }: Props) {
           {tcLabel} min &middot; {filled}/4 players
         </p>
       </div>
-      <button
-        onClick={() => onJoin(firstEmpty)}
-        disabled={firstEmpty === -1}
-        className="bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors"
-      >
-        Join
-      </button>
+      {alreadyIn ? (
+        <button
+          onClick={onView}
+          className="bg-gray-700 hover:bg-gray-600 rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors"
+        >
+          View
+        </button>
+      ) : (
+        <button
+          onClick={() => onJoin(firstEmpty)}
+          disabled={firstEmpty === -1}
+          className="bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors"
+        >
+          Join
+        </button>
+      )}
     </div>
   );
 }

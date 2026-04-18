@@ -15,6 +15,7 @@ export default function LobbyList() {
   const [showCreate, setShowCreate] = useState(false);
 
   function handleJoin(lobbyId: string, slotIndex: number) {
+    if (slotIndex === -1) return;
     actions?.joinLobby(lobbyId, slotIndex);
     router.push(`/lobbies/${lobbyId}`);
   }
@@ -59,6 +60,7 @@ export default function LobbyList() {
               key={lobby.id}
               lobby={lobby}
               onJoin={(slotIndex) => handleJoin(lobby.id, slotIndex)}
+              onView={() => router.push(`/lobbies/${lobby.id}`)}
             />
           ))}
         </div>
