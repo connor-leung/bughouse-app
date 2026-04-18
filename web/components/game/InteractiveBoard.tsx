@@ -134,7 +134,7 @@ export default function InteractiveBoard({
 
   const PROMO_PIECES = ['queen', 'rook', 'bishop', 'knight'];
   const PROMO_PIECE_MAP: Record<string, string> = {
-    queen: 'q', rook: 'r', bishop: 'b', knight: 'n',
+    queen: 'queen', rook: 'rook', bishop: 'bishop', knight: 'knight',
   };
   const PROMO_UNICODE: Record<string, string> = {
     queen: '♛', rook: '♜', bishop: '♝', knight: '♞',
