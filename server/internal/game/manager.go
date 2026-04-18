@@ -30,3 +30,19 @@ func (m *Manager) Remove(id string) {
 	delete(m.sessions, id)
 	m.mu.Unlock()
 }
+
+// FindByPlayer returns all active sessions in which userID is a player.
+func (m *Manager) FindByPlayer(userID string) []*Session {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	var out []*Session
+	for _, s := range m.sessions {
+		for _, p := range s.Players {
+			if p != nil && p.UserID == userID {
+				out = append(out, s)
+				break
+			}
+		}
+	}
+	return out
+}

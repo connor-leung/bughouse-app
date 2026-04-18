@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"math/rand"
 	"net/http"
+	"strings"
 
 	"github.com/connorleung/bughouse-server/internal/lobby"
 )
@@ -19,6 +20,14 @@ func HandleTestGame(gm *Manager) http.HandlerFunc {
 		}
 		if displayName == "" {
 			displayName = "You"
+		}
+
+		// Resign any prior test-game sessions for this user so old bot
+		// goroutines are stopped and sessions are cleaned up.
+		for _, old := range gm.FindByPlayer(userID) {
+			if strings.HasPrefix(old.ID, "T") {
+				old.Resign(userID)
+			}
 		}
 
 		tc := lobby.TimeControl{Minutes: 3, IncrementSeconds: 0}

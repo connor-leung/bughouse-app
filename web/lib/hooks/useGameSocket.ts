@@ -30,6 +30,7 @@ export function useGameSocket(gameId: string, userId: string) {
     };
 
     ws.onmessage = (e) => {
+      if (!isMounted.current) return;
       const msg: WsEnvelope = JSON.parse(e.data);
       switch (msg.type) {
         case 'game:state':
@@ -59,8 +60,14 @@ export function useGameSocket(gameId: string, userId: string) {
       }
     };
 
-    ws.onerror = () => store.setError('Connection error');
-    ws.onclose = () => store.setConnected(false);
+    ws.onerror = () => {
+      if (!isMounted.current) return;
+      store.setError('Connection error');
+    };
+    ws.onclose = () => {
+      if (!isMounted.current) return;
+      store.setConnected(false);
+    };
 
     return () => {
       isMounted.current = false;
