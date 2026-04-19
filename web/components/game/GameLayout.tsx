@@ -1,14 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Chess } from 'chess.js';
+import { Chess, Square, PieceSymbol } from 'chess.js';
 import { getUserId } from '@/lib/identity';
 import { useGameSocket } from '@/lib/hooks/useGameSocket';
 import { useChessClocks } from '@/lib/hooks/useChessClocks';
 import { useBoardWidth } from '@/lib/hooks/useBoardWidth';
 import { useGameStore } from '@/store/gameStore';
-import { BoardRole, clockIndex, opponentRole, partnerRole, roleBoard, roleColor } from '@/lib/types';
+import { BoardRole, BoardSnapshot, clockIndex, opponentRole, partnerRole, roleBoard, roleColor } from '@/lib/types';
 import InteractiveBoard from './InteractiveBoard';
 import ReadOnlyBoard from './ReadOnlyBoard';
 import ChessClock from './ChessClock';
@@ -27,8 +26,33 @@ function getActiveRoleForBoard(fen: string, boardNum: 1 | 2): BoardRole {
   return turn === 'w' ? 'board2White' : 'board2Black';
 }
 
+const PIECE_SYMBOL: Record<string, PieceSymbol> = {
+  queen: 'q', rook: 'r', bishop: 'b', knight: 'n', pawn: 'p',
+};
+
+function applyOptimisticMove(snapshot: BoardSnapshot, from: string, to: string, promotion?: string): BoardSnapshot | null {
+  try {
+    const chess = new Chess(snapshot.fen);
+    const promoSymbol = promotion ? (PIECE_SYMBOL[promotion] ?? promotion as PieceSymbol) : undefined;
+    const result = chess.move({ from: from as Square, to: to as Square, promotion: promoSymbol });
+    if (!result) return null;
+    return { fen: chess.fen(), isCheck: false, lastFrom: from, lastTo: to };
+  } catch { return null; }
+}
+
+function applyOptimisticDrop(snapshot: BoardSnapshot, pieceRole: string, to: string, color: 'white' | 'black'): BoardSnapshot | null {
+  try {
+    const chess = new Chess(snapshot.fen);
+    const type = PIECE_SYMBOL[pieceRole];
+    if (!type) return null;
+    if (!chess.put({ type, color: color === 'white' ? 'w' : 'b' }, to as Square)) return null;
+    const parts = chess.fen().split(' ');
+    parts[1] = parts[1] === 'w' ? 'b' : 'w'; // flip turn
+    return { fen: parts.join(' '), isCheck: false, lastFrom: undefined, lastTo: to };
+  } catch { return null; }
+}
+
 export default function GameLayout({ gameId }: Props) {
-  const router = useRouter();
   const userId = getUserId();
   const { sendMove, sendMove2, sendDrop, resign, sendMessage } = useGameSocket(gameId, userId);
 
@@ -43,12 +67,16 @@ export default function GameLayout({ gameId }: Props) {
   const [showChat, setShowChat] = useState(false);
   const [selectedDropPiece, setSelectedDropPiece] = useState<string | null>(null);
   const [unread, setUnread] = useState(0);
+  const [optimisticSnapshot, setOptimisticSnapshot] = useState<BoardSnapshot | null>(null);
 
   const { mainBoardWidth, partnerBoardWidth, isMobile } = useBoardWidth();
   const clocks = useChessClocks(gameState, !!gameResult);
 
   // Reset store on unmount
   useEffect(() => () => resetGame(), [resetGame]);
+
+  // Clear optimistic snapshot when server state arrives
+  useEffect(() => { setOptimisticSnapshot(null); }, [gameState]);
 
   // Track unread chat
   useEffect(() => {
@@ -97,11 +125,13 @@ export default function GameLayout({ gameId }: Props) {
     if (myBoard === 1) sendMove(from, to, promotion);
     else sendMove2(from, to, promotion);
     setSelectedDropPiece(null);
+    setOptimisticSnapshot(applyOptimisticMove(myBoardSnapshot, from, to, promotion));
   }
 
   function handleDrop(pieceRole: string, to: string) {
     sendDrop(myBoard === 1 ? '1' : '2', pieceRole, to);
     setSelectedDropPiece(null);
+    setOptimisticSnapshot(applyOptimisticDrop(myBoardSnapshot, pieceRole, to, myColor));
   }
 
   function handleResign() {
@@ -117,10 +147,7 @@ export default function GameLayout({ gameId }: Props) {
     <div className="min-h-screen bg-gray-950 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2 bg-gray-900 border-b border-gray-800">
-        <button onClick={() => router.push('/home')} className="text-gray-400 hover:text-gray-200 text-sm py-1">
-          ← Home
-        </button>
-        <span className="hidden sm:block text-sm text-gray-500 font-mono">{gameId.slice(0, 8)}</span>
+        <span className="text-sm text-gray-500 font-mono">{gameId.slice(0, 8)}</span>
         <div className="flex items-center gap-2">
           <span className={`text-xs px-2 py-0.5 rounded-full ${isConnected ? 'bg-green-900 text-green-300' : 'bg-gray-700 text-gray-400'}`}>
             {isConnected ? 'Live' : '...'}
@@ -179,7 +206,7 @@ export default function GameLayout({ gameId }: Props) {
             </div>
 
             <InteractiveBoard
-              snapshot={myBoardSnapshot}
+              snapshot={optimisticSnapshot ?? myBoardSnapshot}
               orientation={orientation}
               myColor={myColor}
               isMyTurn={isMyTurn && !gameResult}
