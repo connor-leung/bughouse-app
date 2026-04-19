@@ -114,7 +114,12 @@ func (h *lobbyHub) handleMessage(c *Client, env Envelope) {
 		}
 		if l, ok := h.manager.Get(req.LobbyID); ok {
 			l.Leave(c.UserID)
-			h.broadcast("lobby:updated", l)
+			if l.PlayerCount() == 0 {
+				h.manager.Delete(req.LobbyID)
+				h.broadcast("lobby:list", h.manager.List())
+			} else {
+				h.broadcast("lobby:updated", l)
+			}
 		}
 
 	case "lobby:start":

@@ -97,6 +97,16 @@ func (l *Lobby) Leave(userID string) {
 	}
 }
 
+func (l *Lobby) PlayerCount() int {
+	count := 0
+	for _, s := range l.Slots {
+		if s != nil {
+			count++
+		}
+	}
+	return count
+}
+
 func (l *Lobby) IsFull() bool {
 	for _, s := range l.Slots {
 		if s == nil {
