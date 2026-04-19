@@ -223,7 +223,7 @@ export default function GameLayout({ gameId }: Props) {
           </div>
 
           {/* Right column: partner board */}
-          <div className="flex flex-col items-center gap-2 w-full border-t border-gray-800 pt-4 md:border-0 md:pt-0" style={{ maxWidth: partnerBoardWidth }}>
+          <div className="flex flex-col items-center gap-2 w-full mx-auto md:mx-0 border-t border-gray-800 pt-4 md:border-0 md:pt-0" style={{ maxWidth: partnerBoardWidth }}>
             <div className="flex items-center justify-between w-full">
               <p className="text-xs text-gray-500">Partner&apos;s board</p>
               <ChessClock
