@@ -17,9 +17,17 @@ export function useBoardWidth() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const mainBoardWidth = Math.min(windowWidth - 32, 420);
-  const partnerBoardWidth = Math.round(mainBoardWidth * (280 / 420));
   const isMobile = windowWidth < 768;
+
+  // Mobile: single column, board fills width
+  // Desktop: two columns side by side, each board gets half the viewport minus padding/gap
+  const boardWidth = isMobile
+    ? Math.min(windowWidth - 32, 420)
+    : Math.min(Math.floor((windowWidth - 80) / 2), 420);
+
+  const mainBoardWidth = boardWidth;
+  // Mobile: partner board is proportionally smaller; desktop: same size as main board
+  const partnerBoardWidth = isMobile ? Math.round(boardWidth * (280 / 420)) : boardWidth;
 
   return { mainBoardWidth, partnerBoardWidth, isMobile };
 }

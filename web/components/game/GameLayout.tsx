@@ -180,46 +180,41 @@ export default function GameLayout({ gameId }: Props) {
 
       {/* Main content */}
       <div className="flex flex-1 overflow-auto">
-        <div className={`flex-1 flex flex-col items-center justify-center gap-4 p-4 ${showChat && !isMobile ? 'mr-80' : ''}`}>
+        <div className={`flex-1 flex flex-col md:flex-row md:items-start md:justify-center gap-4 md:gap-8 p-4 ${showChat && !isMobile ? 'mr-80' : ''}`}>
 
-          {/* Opponent clock (top) */}
-          <div className="flex items-center gap-3">
+          {/* Left column: my board */}
+          <div className="flex flex-col items-center gap-2">
             <ChessClock
               ms={opponentClock}
               isActive={!isMyTurn && !gameResult}
               label={opponent?.displayName ?? 'Opponent'}
             />
-          </div>
 
-          {/* My board */}
-          <div className="flex flex-col items-center gap-2">
-            {/* Partner bank (pieces I can drop from partner) */}
-            <div className="bg-gray-900 rounded-xl p-2">
-              <p className="text-xs text-gray-500 mb-1 px-1">Partner&apos;s captures (for you)</p>
-              <PieceBankBar
-                bank={myBank}
-                color={myColor}
-                selectedPiece={selectedDropPiece}
-                onSelectPiece={setSelectedDropPiece}
-                disabled={!isMyTurn || !!gameResult}
+            <div className="flex flex-col items-center gap-2">
+              <div className="bg-gray-900 rounded-xl p-2">
+                <p className="text-xs text-gray-500 mb-1 px-1">Partner&apos;s captures (for you)</p>
+                <PieceBankBar
+                  bank={myBank}
+                  color={myColor}
+                  selectedPiece={selectedDropPiece}
+                  onSelectPiece={setSelectedDropPiece}
+                  disabled={!isMyTurn || !!gameResult}
+                />
+              </div>
+
+              <InteractiveBoard
+                snapshot={optimisticSnapshot ?? myBoardSnapshot}
+                orientation={orientation}
+                myColor={myColor}
+                isMyTurn={isMyTurn && !gameResult}
+                selectedDropPiece={selectedDropPiece}
+                onMove={handleMove}
+                onDrop={handleDrop}
+                onClearDrop={() => setSelectedDropPiece(null)}
+                boardWidth={mainBoardWidth}
               />
             </div>
 
-            <InteractiveBoard
-              snapshot={optimisticSnapshot ?? myBoardSnapshot}
-              orientation={orientation}
-              myColor={myColor}
-              isMyTurn={isMyTurn && !gameResult}
-              selectedDropPiece={selectedDropPiece}
-              onMove={handleMove}
-              onDrop={handleDrop}
-              onClearDrop={() => setSelectedDropPiece(null)}
-              boardWidth={mainBoardWidth}
-            />
-          </div>
-
-          {/* My clock (bottom) */}
-          <div className="flex items-center gap-3">
             <ChessClock
               ms={myClock}
               isActive={isMyTurn && !gameResult}
@@ -227,19 +222,17 @@ export default function GameLayout({ gameId }: Props) {
             />
           </div>
 
-          {/* Partner board section */}
-          <div className="flex flex-col items-center gap-2 mt-4 border-t border-gray-800 pt-4 w-full" style={{ maxWidth: mainBoardWidth }}>
+          {/* Right column: partner board */}
+          <div className="flex flex-col items-center gap-2 w-full border-t border-gray-800 pt-4 md:border-0 md:pt-0" style={{ maxWidth: partnerBoardWidth }}>
             <div className="flex items-center justify-between w-full">
               <p className="text-xs text-gray-500">Partner&apos;s board</p>
-              <div className="flex items-center gap-2">
-                <ChessClock
-                  ms={partnerClock}
-                  isActive={
-                    getActiveRoleForBoard(partnerBoardSnapshot.fen, partnerBoardNum) === partnerRole_ && !gameResult
-                  }
-                  label={partner?.displayName ?? 'Partner'}
-                />
-              </div>
+              <ChessClock
+                ms={partnerClock}
+                isActive={
+                  getActiveRoleForBoard(partnerBoardSnapshot.fen, partnerBoardNum) === partnerRole_ && !gameResult
+                }
+                label={partner?.displayName ?? 'Partner'}
+              />
             </div>
 
             <ReadOnlyBoard
@@ -259,6 +252,7 @@ export default function GameLayout({ gameId }: Props) {
               />
             </div>
           </div>
+
         </div>
       </div>
 
