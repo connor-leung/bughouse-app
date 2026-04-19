@@ -127,7 +127,7 @@ export default function InteractiveBoard({
     if (snapshot.lastTo) styles[snapshot.lastTo] = { backgroundColor: 'rgba(255, 214, 10, 0.3)' };
     if (selectedSquare) styles[selectedSquare] = { backgroundColor: 'rgba(20, 180, 80, 0.5)' };
     for (const sq of legalTargets) {
-      styles[sq] = { backgroundColor: 'rgba(20, 180, 80, 0.3)', borderRadius: '50%' };
+      styles[sq] = { background: 'radial-gradient(circle, rgba(0,0,0,0.5) 25%, transparent 25%)' };
     }
     return styles;
   }, [snapshot.lastFrom, snapshot.lastTo, selectedSquare, legalTargets]);
