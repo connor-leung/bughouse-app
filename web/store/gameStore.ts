@@ -8,6 +8,8 @@ interface GameStore {
   chatMessages: ChatMessage[];
   error: string | null;
   isConnected: boolean;
+  rematchVotes: string[];
+  pendingRematch: { gameId: string; role: BoardRole } | null;
 
   setGameState: (s: GameState) => void;
   setGameResult: (r: GameResult) => void;
@@ -15,6 +17,8 @@ interface GameStore {
   appendChat: (m: ChatMessage) => void;
   setError: (e: string | null) => void;
   setConnected: (v: boolean) => void;
+  setRematchVotes: (votes: string[]) => void;
+  setPendingRematch: (g: { gameId: string; role: BoardRole } | null) => void;
   resetGame: () => void;
 }
 
@@ -25,6 +29,8 @@ export const useGameStore = create<GameStore>((set) => ({
   chatMessages: [],
   error: null,
   isConnected: false,
+  rematchVotes: [],
+  pendingRematch: null,
 
   setGameState: (gameState) => set({ gameState }),
   setGameResult: (gameResult) => set({ gameResult }),
@@ -32,6 +38,8 @@ export const useGameStore = create<GameStore>((set) => ({
   appendChat: (m) => set((s) => ({ chatMessages: [...s.chatMessages, m] })),
   setError: (error) => set({ error }),
   setConnected: (isConnected) => set({ isConnected }),
+  setRematchVotes: (rematchVotes) => set({ rematchVotes }),
+  setPendingRematch: (pendingRematch) => set({ pendingRematch }),
   resetGame: () =>
     set({
       gameState: null,
@@ -40,5 +48,7 @@ export const useGameStore = create<GameStore>((set) => ({
       chatMessages: [],
       error: null,
       isConnected: false,
+      rematchVotes: [],
+      pendingRematch: null,
     }),
 }));

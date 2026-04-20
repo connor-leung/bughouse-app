@@ -58,11 +58,13 @@ export interface GameState {
   /** [board1White=0, board1Black=1, board2White=2, board2Black=3] */
   clocksMs: [number, number, number, number];
   players: PlayerSlot[];
+  scores: [number, number];
 }
 
 export interface GameResult {
   winningTeam: 1 | 2;
   reason: EndReason;
+  scores: [number, number];
 }
 
 export interface ChatMessage {

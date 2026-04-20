@@ -3,6 +3,7 @@ package game
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"sync"
 
 	"github.com/connorleung/bughouse-server/internal/engine"
@@ -25,8 +26,13 @@ type Session struct {
 	Players [4]*Player // indexed by BoardRole order
 	game    *engine.BughouseGame
 	clocks  *ClockManager
+	tc      lobby.TimeControl
 	mu      sync.Mutex
 	endOnce sync.Once
+
+	Scores       [2]int
+	rematchVotes map[string]bool
+	rematchMu    sync.Mutex
 
 	OnUpdate func(s *Session)
 	OnEnd    func(s *Session, winTeam int, reason EndReason)
@@ -45,8 +51,10 @@ func NewSession(id string, slots [4]*lobby.PlayerSlot, tc lobby.TimeControl) *Se
 	durationMs := int64(tc.Minutes)*60*1000
 
 	s := &Session{
-		ID:   id,
-		game: engine.NewBughouseGame(),
+		ID:           id,
+		game:         engine.NewBughouseGame(),
+		tc:           tc,
+		rematchVotes: make(map[string]bool),
 	}
 
 	for i, slot := range slots {
@@ -67,6 +75,24 @@ func NewSession(id string, slots [4]*lobby.PlayerSlot, tc lobby.TimeControl) *Se
 	})
 
 	return s
+}
+
+// NewRematchSession creates a new session with the same players and carries over scores.
+func (s *Session) NewRematchSession() *Session {
+	newID := newSessionID()
+	slots := [4]*lobby.PlayerSlot{}
+	for i, p := range s.Players {
+		if p != nil {
+			slots[i] = &lobby.PlayerSlot{
+				UserID:      p.UserID,
+				DisplayName: p.DisplayName,
+				Role:        p.Role,
+			}
+		}
+	}
+	next := NewSession(newID, slots, s.tc)
+	next.Scores = s.Scores
+	return next
 }
 
 // Start begins the game and clocks.
@@ -157,6 +183,7 @@ func oppositeTeam(t int) int {
 func (s *Session) end(winTeam int, reason EndReason) {
 	s.endOnce.Do(func() {
 		s.clocks.Stop()
+		s.Scores[winTeam-1]++
 		if s.OnEnd != nil {
 			s.OnEnd(s, winTeam, reason)
 		}
@@ -174,6 +201,25 @@ func (s *Session) Resign(userID string) {
 		}
 	}
 	s.mu.Unlock()
+}
+
+// VoteRematch records a rematch vote and returns true when all 4 players have voted.
+func (s *Session) VoteRematch(userID string) bool {
+	s.rematchMu.Lock()
+	defer s.rematchMu.Unlock()
+	s.rematchVotes[userID] = true
+	return len(s.rematchVotes) == 4
+}
+
+// RematchVoterIDs returns the user IDs of players who have voted for rematch.
+func (s *Session) RematchVoterIDs() []string {
+	s.rematchMu.Lock()
+	defer s.rematchMu.Unlock()
+	ids := make([]string, 0, len(s.rematchVotes))
+	for id := range s.rematchVotes {
+		ids = append(ids, id)
+	}
+	return ids
 }
 
 // Snapshot returns a JSON-serialisable view of the full game state.
@@ -196,6 +242,7 @@ func (s *Session) Snapshot() map[string]any {
 			s.clocks.Remaining(2),
 			s.clocks.Remaining(3),
 		},
+		"scores": []int{s.Scores[0], s.Scores[1]},
 	}
 }
 
@@ -238,6 +285,15 @@ func playerSnap(players [4]*Player) []map[string]any {
 		})
 	}
 	return out
+}
+
+func newSessionID() string {
+	const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+	b := make([]byte, 8)
+	for i := range b {
+		b[i] = chars[rand.Intn(len(chars))]
+	}
+	return string(b)
 }
 
 // --------------------------------------------------------------------------

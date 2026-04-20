@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef } from 'react';
-import { wsUrl } from '@/lib/serverUrl';
+import { wsUrl, fetchWsTicket } from '@/lib/serverUrl';
 import { BoardRole, ChatMessage, GameResult, GameState, WsEnvelope } from '@/lib/types';
 import { useGameStore } from '@/store/gameStore';
 
@@ -20,58 +20,72 @@ export function useGameSocket(gameId: string, userId: string) {
     isMounted.current = true;
     if (!gameId || !userId) return;
 
-    const url = `${wsUrl()}/game/${gameId}?userId=${encodeURIComponent(userId)}`;
-    const ws = new WebSocket(url);
-    wsRef.current = ws;
-
-    ws.onopen = () => {
-      store.setConnected(true);
-      store.setError(null);
-    };
-
-    ws.onmessage = (e) => {
+    (async () => {
+      const ticket = await fetchWsTicket();
       if (!isMounted.current) return;
-      const msg: WsEnvelope = JSON.parse(e.data);
-      switch (msg.type) {
-        case 'game:state':
-        case 'game:update': {
-          const state = msg.data as GameState;
-          if (state.gameId !== gameId) break;
-          store.setGameState(state);
-          if (!store.myRole) {
-            const slot = state.players.find((p) => p.userId === userId);
-            if (slot) store.setMyRole(slot.role as BoardRole);
+      const url = `${wsUrl()}/game/${gameId}?userId=${encodeURIComponent(userId)}${ticket ? `&ticket=${encodeURIComponent(ticket)}` : ''}`;
+      const ws = new WebSocket(url);
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        store.setConnected(true);
+        store.setError(null);
+      };
+
+      ws.onmessage = (e) => {
+        if (!isMounted.current) return;
+        const msg: WsEnvelope = JSON.parse(e.data);
+        switch (msg.type) {
+          case 'game:state':
+          case 'game:update': {
+            const state = msg.data as GameState;
+            if (state.gameId !== gameId) break;
+            store.setGameState(state);
+            if (!store.myRole) {
+              const slot = state.players.find((p) => p.userId === userId);
+              if (slot) store.setMyRole(slot.role as BoardRole);
+            }
+            break;
           }
-          break;
+          case 'game:ended': {
+            store.setGameResult(msg.data as GameResult);
+            break;
+          }
+          case 'game:rematch_votes': {
+            const data = msg.data as { votes: string[] };
+            store.setRematchVotes(data.votes ?? []);
+            break;
+          }
+          case 'game:starting': {
+            const data = msg.data as { gameId: string; role: BoardRole };
+            store.setPendingRematch(data);
+            break;
+          }
+          case 'game:message': {
+            store.appendChat(msg.data as ChatMessage);
+            break;
+          }
+          case 'error': {
+            const data = msg.data as { message: string };
+            store.setError(data.message ?? String(msg.data));
+            break;
+          }
         }
-        case 'game:ended': {
-          store.setGameResult(msg.data as GameResult);
-          break;
-        }
-        case 'game:message': {
-          store.appendChat(msg.data as ChatMessage);
-          break;
-        }
-        case 'error': {
-          const data = msg.data as { message: string };
-          store.setError(data.message ?? String(msg.data));
-          break;
-        }
-      }
-    };
+      };
 
-    ws.onerror = () => {
-      if (!isMounted.current) return;
-      store.setError('Connection error');
-    };
-    ws.onclose = () => {
-      if (!isMounted.current) return;
-      store.setConnected(false);
-    };
+      ws.onerror = () => {
+        if (!isMounted.current) return;
+        store.setError('Connection error');
+      };
+      ws.onclose = () => {
+        if (!isMounted.current) return;
+        store.setConnected(false);
+      };
+    })();
 
     return () => {
       isMounted.current = false;
-      ws.close();
+      wsRef.current?.close();
     };
   }, [gameId, userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -101,5 +115,9 @@ export function useGameSocket(gameId: string, userId: string) {
     send(wsRef.current, 'game:message', { text });
   }, []);
 
-  return { sendMove, sendMove2, sendDrop, resign, sendMessage };
+  const sendRematch = useCallback(() => {
+    send(wsRef.current, 'game:rematch');
+  }, []);
+
+  return { sendMove, sendMove2, sendDrop, resign, sendMessage, sendRematch };
 }

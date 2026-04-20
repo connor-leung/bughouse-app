@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Chess, Square, PieceSymbol } from 'chess.js';
+import { useRouter } from 'next/navigation';
 import { getUserId } from '@/lib/identity';
 import { useGameSocket } from '@/lib/hooks/useGameSocket';
 import { useChessClocks } from '@/lib/hooks/useChessClocks';
@@ -13,7 +14,7 @@ import ReadOnlyBoard from './ReadOnlyBoard';
 import ChessClock from './ChessClock';
 import PieceBankBar from './PieceBankBar';
 import TeamChat from './TeamChat';
-import GameEndOverlay from './GameEndOverlay';
+import GameResultBanner from './GameResultBanner';
 
 interface Props {
   gameId: string;
@@ -53,8 +54,9 @@ function applyOptimisticDrop(snapshot: BoardSnapshot, pieceRole: string, to: str
 }
 
 export default function GameLayout({ gameId }: Props) {
+  const router = useRouter();
   const userId = getUserId();
-  const { sendMove, sendMove2, sendDrop, resign, sendMessage } = useGameSocket(gameId, userId);
+  const { sendMove, sendMove2, sendDrop, resign, sendMessage, sendRematch } = useGameSocket(gameId, userId);
 
   const gameState = useGameStore((s) => s.gameState);
   const gameResult = useGameStore((s) => s.gameResult);
@@ -63,6 +65,8 @@ export default function GameLayout({ gameId }: Props) {
   const isConnected = useGameStore((s) => s.isConnected);
   const error = useGameStore((s) => s.error);
   const resetGame = useGameStore((s) => s.resetGame);
+  const rematchVotes = useGameStore((s) => s.rematchVotes);
+  const pendingRematch = useGameStore((s) => s.pendingRematch);
 
   const [showChat, setShowChat] = useState(false);
   const [selectedDropPiece, setSelectedDropPiece] = useState<string | null>(null);
@@ -74,6 +78,13 @@ export default function GameLayout({ gameId }: Props) {
 
   // Reset store on unmount
   useEffect(() => () => resetGame(), [resetGame]);
+
+  // Navigate to rematch game when all players vote
+  useEffect(() => {
+    if (pendingRematch) {
+      router.push(`/game/${pendingRematch.gameId}`);
+    }
+  }, [pendingRematch]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Clear optimistic snapshot when server state arrives
   useEffect(() => { setOptimisticSnapshot(null); }, [gameState]);
@@ -163,14 +174,27 @@ export default function GameLayout({ gameId }: Props) {
               </span>
             )}
           </button>
-          <button
-            onClick={handleResign}
-            className="bg-red-900/60 hover:bg-red-800 rounded-lg px-3 py-1.5 text-sm text-red-300 font-medium transition-colors"
-          >
-            Resign
-          </button>
+          {!gameResult && (
+            <button
+              onClick={handleResign}
+              className="bg-red-900/60 hover:bg-red-800 rounded-lg px-3 py-1.5 text-sm text-red-300 font-medium transition-colors"
+            >
+              Resign
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Game result banner */}
+      {gameResult && (
+        <GameResultBanner
+          result={gameResult}
+          myRole={myRole}
+          players={gameState?.players ?? []}
+          rematchVotes={rematchVotes}
+          onRematch={sendRematch}
+        />
+      )}
 
       {error && (
         <div className="bg-red-900/50 border-b border-red-800 px-4 py-2 text-red-300 text-sm text-center">
@@ -267,8 +291,6 @@ export default function GameLayout({ gameId }: Props) {
         />
       )}
 
-      {/* Game end overlay */}
-      {gameResult && <GameEndOverlay result={gameResult} myRole={myRole} />}
     </div>
   );
 }

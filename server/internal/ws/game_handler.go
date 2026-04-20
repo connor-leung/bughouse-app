@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/connorleung/bughouse-server/internal/game"
 )
@@ -94,8 +95,13 @@ func (h *gameHub) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.broadcastToSession(s, "game:ended", map[string]any{
 			"winningTeam": winTeam,
 			"reason":      reason,
+			"scores":      []int{s.Scores[0], s.Scores[1]},
 		})
-		h.manager.Remove(s.ID)
+		// Schedule session cleanup after 5 minutes to allow rematch votes.
+		go func() {
+			time.Sleep(5 * time.Minute)
+			h.manager.Remove(s.ID)
+		}()
 	}
 
 	// Send full state on connect
@@ -129,8 +135,55 @@ func (h *gameHub) handleMessage(c *Client, sess *game.Session, env Envelope) {
 		if err := json.Unmarshal(env.Data, &req); err != nil || req.Text == "" {
 			return
 		}
-		// Broadcast to teammates only
 		h.broadcastTeam(sess, c.UserID, req.Text)
+
+	case "game:rematch":
+		allReady := sess.VoteRematch(c.UserID)
+		voterIDs := sess.RematchVoterIDs()
+		h.broadcastToSession(sess, "game:rematch_votes", map[string]any{
+			"votes": voterIDs,
+		})
+		if allReady {
+			newSess := sess.NewRematchSession()
+			h.wireSession(newSess)
+			h.manager.Add(newSess)
+
+			// Notify each player of their role in the new game
+			h.mu.RLock()
+			for _, p := range sess.Players {
+				if p == nil {
+					continue
+				}
+				if client, ok := h.clients[p.UserID]; ok {
+					client.Send("game:starting", map[string]any{
+						"gameId": newSess.ID,
+						"role":   string(p.Role),
+					})
+				}
+			}
+			h.mu.RUnlock()
+
+			h.manager.Remove(sess.ID)
+			newSess.Start()
+		}
+	}
+}
+
+// wireSession attaches broadcast callbacks to a session.
+func (h *gameHub) wireSession(s *game.Session) {
+	s.OnUpdate = func(sess *game.Session) {
+		h.broadcastToSession(sess, "game:update", sess.Snapshot())
+	}
+	s.OnEnd = func(sess *game.Session, winTeam int, reason game.EndReason) {
+		h.broadcastToSession(sess, "game:ended", map[string]any{
+			"winningTeam": winTeam,
+			"reason":      reason,
+			"scores":      []int{sess.Scores[0], sess.Scores[1]},
+		})
+		go func() {
+			time.Sleep(5 * time.Minute)
+			h.manager.Remove(sess.ID)
+		}()
 	}
 }
 
