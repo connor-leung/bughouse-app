@@ -30,6 +30,7 @@ type Session struct {
 	mu      sync.Mutex
 	endOnce sync.Once
 
+	Ended        bool
 	Scores       [2]int
 	rematchVotes map[string]bool
 	rematchMu    sync.Mutex
@@ -182,6 +183,7 @@ func oppositeTeam(t int) int {
 
 func (s *Session) end(winTeam int, reason EndReason) {
 	s.endOnce.Do(func() {
+		s.Ended = true
 		s.clocks.Stop()
 		s.Scores[winTeam-1]++
 		if s.OnEnd != nil {
@@ -203,12 +205,11 @@ func (s *Session) Resign(userID string) {
 	s.mu.Unlock()
 }
 
-// VoteRematch records a rematch vote and returns true when all 4 players have voted.
-func (s *Session) VoteRematch(userID string) bool {
+// VoteRematch records a rematch vote from userID.
+func (s *Session) VoteRematch(userID string) {
 	s.rematchMu.Lock()
 	defer s.rematchMu.Unlock()
 	s.rematchVotes[userID] = true
-	return len(s.rematchVotes) == 4
 }
 
 // RematchVoterIDs returns the user IDs of players who have voted for rematch.

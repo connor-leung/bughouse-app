@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/connorleung/bughouse-server/internal/game"
 )
@@ -36,9 +35,35 @@ func (h *gameHub) register(c *Client, gameID string) {
 
 func (h *gameHub) unregister(c *Client) {
 	h.mu.Lock()
+	gameID := h.clientGameID[c.UserID]
 	delete(h.clients, c.UserID)
 	delete(h.clientGameID, c.UserID)
 	h.mu.Unlock()
+	// Clean up the session if it has ended and no players remain.
+	if gameID != "" {
+		h.cleanupIfEmpty(gameID)
+	}
+}
+
+// cleanupIfEmpty removes a session from the manager when it has ended
+// and all players have disconnected.
+func (h *gameHub) cleanupIfEmpty(gameID string) {
+	sess, ok := h.manager.Get(gameID)
+	if !ok || !sess.Ended {
+		return
+	}
+	h.mu.RLock()
+	for _, p := range sess.Players {
+		if p == nil {
+			continue
+		}
+		if _, ok := h.clients[p.UserID]; ok {
+			h.mu.RUnlock()
+			return // at least one player still connected
+		}
+	}
+	h.mu.RUnlock()
+	h.manager.Remove(gameID)
 }
 
 func (h *gameHub) broadcastToSession(s *game.Session, msgType string, data any) {
@@ -55,6 +80,32 @@ func (h *gameHub) broadcastToSession(s *game.Session, msgType string, data any) 
 			}
 		}
 	}
+}
+
+// allConnectedVoted returns true when every player currently connected to
+// this session has cast a rematch vote.
+func (h *gameHub) allConnectedVoted(sess *game.Session, voterIDs []string) bool {
+	voterSet := make(map[string]bool, len(voterIDs))
+	for _, id := range voterIDs {
+		voterSet[id] = true
+	}
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	connectedCount := 0
+	for _, p := range sess.Players {
+		if p == nil {
+			continue
+		}
+		if _, ok := h.clients[p.UserID]; ok {
+			if h.clientGameID[p.UserID] == sess.ID {
+				connectedCount++
+				if !voterSet[p.UserID] {
+					return false
+				}
+			}
+		}
+	}
+	return connectedCount > 0
 }
 
 // ServeHTTP handles /game/{gameId} WebSocket connections.
@@ -97,11 +148,7 @@ func (h *gameHub) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			"reason":      reason,
 			"scores":      []int{s.Scores[0], s.Scores[1]},
 		})
-		// Schedule session cleanup after 5 minutes to allow rematch votes.
-		go func() {
-			time.Sleep(5 * time.Minute)
-			h.manager.Remove(s.ID)
-		}()
+		// Session is cleaned up by cleanupIfEmpty when the last player disconnects.
 	}
 
 	// Send full state on connect
@@ -138,17 +185,17 @@ func (h *gameHub) handleMessage(c *Client, sess *game.Session, env Envelope) {
 		h.broadcastTeam(sess, c.UserID, req.Text)
 
 	case "game:rematch":
-		allReady := sess.VoteRematch(c.UserID)
+		sess.VoteRematch(c.UserID)
 		voterIDs := sess.RematchVoterIDs()
 		h.broadcastToSession(sess, "game:rematch_votes", map[string]any{
 			"votes": voterIDs,
 		})
-		if allReady {
+		if h.allConnectedVoted(sess, voterIDs) {
 			newSess := sess.NewRematchSession()
 			h.wireSession(newSess)
 			h.manager.Add(newSess)
 
-			// Notify each player of their role in the new game
+			// Notify each connected player of their role in the new game.
 			h.mu.RLock()
 			for _, p := range sess.Players {
 				if p == nil {
@@ -163,13 +210,14 @@ func (h *gameHub) handleMessage(c *Client, sess *game.Session, env Envelope) {
 			}
 			h.mu.RUnlock()
 
-			h.manager.Remove(sess.ID)
+			// Don't remove old session here — cleanupIfEmpty handles it
+			// as players navigate to the new game and disconnect.
 			newSess.Start()
 		}
 	}
 }
 
-// wireSession attaches broadcast callbacks to a session.
+// wireSession attaches broadcast callbacks to a new session.
 func (h *gameHub) wireSession(s *game.Session) {
 	s.OnUpdate = func(sess *game.Session) {
 		h.broadcastToSession(sess, "game:update", sess.Snapshot())
@@ -180,10 +228,7 @@ func (h *gameHub) wireSession(s *game.Session) {
 			"reason":      reason,
 			"scores":      []int{sess.Scores[0], sess.Scores[1]},
 		})
-		go func() {
-			time.Sleep(5 * time.Minute)
-			h.manager.Remove(sess.ID)
-		}()
+		// Session is cleaned up by cleanupIfEmpty when the last player disconnects.
 	}
 }
 
