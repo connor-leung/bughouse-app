@@ -11,80 +11,143 @@ function send(ws: WebSocket | null, type: string, data?: unknown) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// localStorage persistence for game-over state
+// These events are sent once and never re-broadcast on reconnect, so we
+// save them locally and restore on reload.
+// ---------------------------------------------------------------------------
+
+interface PersistedGameState {
+  gameResult?: GameResult;
+  rematchVotes?: string[];
+  myRole?: BoardRole;
+}
+
+function persistKey(gameId: string) {
+  return `bughouse:game:${gameId}`;
+}
+
+function loadPersistedState(gameId: string): PersistedGameState {
+  try {
+    const raw = localStorage.getItem(persistKey(gameId));
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function savePersistedState(gameId: string, patch: Partial<PersistedGameState>) {
+  try {
+    const existing = loadPersistedState(gameId);
+    localStorage.setItem(persistKey(gameId), JSON.stringify({ ...existing, ...patch }));
+  } catch { /* storage unavailable */ }
+}
+
 export function useGameSocket(gameId: string, userId: string) {
   const wsRef = useRef<WebSocket | null>(null);
-  const store = useGameStore();
-  const isMounted = useRef(true);
+
+  // Access the store via getState() for use outside React render cycle
+  // (WebSocket handlers are not React event handlers, so using the store
+  // snapshot from the closure can be stale).
+  const gs = useGameStore;
 
   useEffect(() => {
-    isMounted.current = true;
+    let active = true;
     if (!gameId || !userId) return;
+
+    console.log('[game] resetGame for', gameId);
+    gs.getState().resetGame();
+
+    // Restore one-time events (game:ended, rematch votes) that won't be
+    // re-sent by the server on reconnect.
+    const saved = loadPersistedState(gameId);
+    if (saved.gameResult) gs.getState().setGameResult(saved.gameResult);
+    if (saved.rematchVotes) gs.getState().setRematchVotes(saved.rematchVotes);
+    if (saved.myRole) gs.getState().setMyRole(saved.myRole);
 
     (async () => {
       const ticket = await fetchWsTicket();
-      if (!isMounted.current) return;
+      if (!active) return;
       const url = `${wsUrl()}/game/${gameId}?userId=${encodeURIComponent(userId)}${ticket ? `&ticket=${encodeURIComponent(ticket)}` : ''}`;
+      console.log('[game] creating WebSocket to', url);
       const ws = new WebSocket(url);
       wsRef.current = ws;
 
       ws.onopen = () => {
-        store.setConnected(true);
-        store.setError(null);
+        if (!active) return;
+        console.log('[game] ws connected to', gameId);
+        gs.getState().setConnected(true);
+        gs.getState().setError(null);
       };
 
       ws.onmessage = (e) => {
-        if (!isMounted.current) return;
+        if (!active) return;
         const msg: WsEnvelope = JSON.parse(e.data);
+        console.log('[game] received', msg.type);
         switch (msg.type) {
           case 'game:state':
           case 'game:update': {
             const state = msg.data as GameState;
-            if (state.gameId !== gameId) break;
-            store.setGameState(state);
-            if (!store.myRole) {
+            if (state.gameId !== gameId) {
+              console.log('[game] ignoring', msg.type, 'for', state.gameId, '(expected', gameId + ')');
+              break;
+            }
+            gs.getState().setPendingRematch(null);
+            gs.getState().setGameState(state);
+            if (!gs.getState().myRole) {
               const slot = state.players.find((p) => p.userId === userId);
-              if (slot) store.setMyRole(slot.role as BoardRole);
+              if (slot) {
+                gs.getState().setMyRole(slot.role as BoardRole);
+                savePersistedState(gameId, { myRole: slot.role as BoardRole });
+              }
             }
             break;
           }
           case 'game:ended': {
-            store.setGameResult(msg.data as GameResult);
+            const result = msg.data as GameResult;
+            gs.getState().setGameResult(result);
+            savePersistedState(gameId, { gameResult: result });
             break;
           }
           case 'game:rematch_votes': {
             const data = msg.data as { votes: string[] };
-            store.setRematchVotes(data.votes ?? []);
+            gs.getState().setRematchVotes(data.votes ?? []);
+            savePersistedState(gameId, { rematchVotes: data.votes ?? [] });
             break;
           }
           case 'game:starting': {
             const data = msg.data as { gameId: string; role: BoardRole };
-            store.setPendingRematch(data);
+            console.log('[game] received game:starting', data.gameId);
+            gs.getState().setPendingRematch(data);
             break;
           }
           case 'game:message': {
-            store.appendChat(msg.data as ChatMessage);
+            gs.getState().appendChat(msg.data as ChatMessage);
             break;
           }
           case 'error': {
             const data = msg.data as { message: string };
-            store.setError(data.message ?? String(msg.data));
+            console.log('[game] received error:', data.message);
+            gs.getState().setError(data.message ?? String(msg.data));
             break;
           }
         }
       };
 
       ws.onerror = () => {
-        if (!isMounted.current) return;
-        store.setError('Connection error');
+        if (!active) return;
+        console.log('[game] ws error');
+        gs.getState().setError('Connection error');
       };
-      ws.onclose = () => {
-        if (!isMounted.current) return;
-        store.setConnected(false);
+      ws.onclose = (e) => {
+        if (!active) return;
+        console.log('[game] ws closed', e.code, e.reason);
+        gs.getState().setConnected(false);
       };
     })();
 
     return () => {
-      isMounted.current = false;
+      active = false;
       wsRef.current?.close();
     };
   }, [gameId, userId]); // eslint-disable-line react-hooks/exhaustive-deps

@@ -33,16 +33,19 @@ func (h *gameHub) register(c *Client, gameID string) {
 	h.mu.Unlock()
 }
 
-func (h *gameHub) unregister(c *Client) {
+func (h *gameHub) unregister(c *Client, gameID string) {
 	h.mu.Lock()
-	gameID := h.clientGameID[c.UserID]
-	delete(h.clients, c.UserID)
-	delete(h.clientGameID, c.UserID)
-	h.mu.Unlock()
-	// Clean up the session if it has ended and no players remain.
-	if gameID != "" {
-		h.cleanupIfEmpty(gameID)
+	// Only evict if this client is still the active one for this userID.
+	// A newer connection for the same user may have already replaced it.
+	if stored, ok := h.clients[c.UserID]; ok && stored == c {
+		log.Printf("[hub] unregister %s from %s (active client)", c.UserID, gameID)
+		delete(h.clients, c.UserID)
+		delete(h.clientGameID, c.UserID)
+	} else {
+		log.Printf("[hub] unregister %s from %s (superseded, skipping delete)", c.UserID, gameID)
 	}
+	h.mu.Unlock()
+	h.cleanupIfEmpty(gameID)
 }
 
 // cleanupIfEmpty removes a session from the manager when it has ended
@@ -58,8 +61,10 @@ func (h *gameHub) cleanupIfEmpty(gameID string) {
 			continue
 		}
 		if _, ok := h.clients[p.UserID]; ok {
-			h.mu.RUnlock()
-			return // at least one player still connected
+			if h.clientGameID[p.UserID] == gameID {
+				h.mu.RUnlock()
+				return // at least one player still watching this session
+			}
 		}
 	}
 	h.mu.RUnlock()
@@ -123,15 +128,18 @@ func (h *gameHub) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Printf("[game] new connection: user=%s gameId=%s", c.UserID, gameID)
 	sess, ok := h.manager.Get(gameID)
 	if !ok {
+		log.Printf("[game] session not found: %s", gameID)
 		c.Send("error", map[string]string{"message": "game not found"})
 		c.Close()
 		return
 	}
 
+	log.Printf("[game] session found, registering client %s", c.UserID)
 	h.register(c, gameID)
-	defer h.unregister(c)
+	defer h.unregister(c, gameID)
 
 	// Hook up session callbacks to broadcast via this hub.
 	// Chain OnEnd so any pre-existing handler (e.g. bot stopCh) still fires.
@@ -152,6 +160,7 @@ func (h *gameHub) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send full state on connect
+	log.Printf("[game] sending game:state to %s for session %s", c.UserID, gameID)
 	c.Send("game:state", sess.Snapshot())
 
 	go c.WritePump()
@@ -185,15 +194,24 @@ func (h *gameHub) handleMessage(c *Client, sess *game.Session, env Envelope) {
 		h.broadcastTeam(sess, c.UserID, req.Text)
 
 	case "game:rematch":
+		log.Printf("[rematch] vote from %s on session %s", c.UserID, sess.ID)
 		sess.VoteRematch(c.UserID)
 		voterIDs := sess.RematchVoterIDs()
+		log.Printf("[rematch] voters: %v", voterIDs)
 		h.broadcastToSession(sess, "game:rematch_votes", map[string]any{
 			"votes": voterIDs,
 		})
 		if h.allConnectedVoted(sess, voterIDs) {
+			log.Printf("[rematch] all connected voted — creating new session")
 			newSess := sess.NewRematchSession()
+			log.Printf("[rematch] new session ID: %s", newSess.ID)
+			if sess.OnRematch != nil {
+				sess.OnRematch(newSess)
+				log.Printf("[rematch] OnRematch callback fired (bots spawned)")
+			}
 			h.wireSession(newSess)
 			h.manager.Add(newSess)
+			log.Printf("[rematch] new session added to manager")
 
 			// Notify each connected player of their role in the new game.
 			h.mu.RLock()
@@ -209,26 +227,34 @@ func (h *gameHub) handleMessage(c *Client, sess *game.Session, env Envelope) {
 				}
 			}
 			h.mu.RUnlock()
+			log.Printf("[rematch] game:starting sent to clients")
 
 			// Don't remove old session here — cleanupIfEmpty handles it
 			// as players navigate to the new game and disconnect.
 			newSess.Start()
+			log.Printf("[rematch] newSess.Start() called")
+		} else {
+			log.Printf("[rematch] not all connected voted yet")
 		}
 	}
 }
 
 // wireSession attaches broadcast callbacks to a new session.
+// It chains any existing OnEnd (e.g. bot cleanup set by OnRematch).
 func (h *gameHub) wireSession(s *game.Session) {
 	s.OnUpdate = func(sess *game.Session) {
 		h.broadcastToSession(sess, "game:update", sess.Snapshot())
 	}
+	prevOnEnd := s.OnEnd
 	s.OnEnd = func(sess *game.Session, winTeam int, reason game.EndReason) {
+		if prevOnEnd != nil {
+			prevOnEnd(sess, winTeam, reason)
+		}
 		h.broadcastToSession(sess, "game:ended", map[string]any{
 			"winningTeam": winTeam,
 			"reason":      reason,
 			"scores":      []int{sess.Scores[0], sess.Scores[1]},
 		})
-		// Session is cleaned up by cleanupIfEmpty when the last player disconnects.
 	}
 }
 

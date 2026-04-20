@@ -43,17 +43,24 @@ func HandleTestGame(gm *Manager) http.HandlerFunc {
 		sess := NewSession(generateTestID(), slots, tc)
 		gm.Add(sess)
 
-		// Start bots for slots 1, 2, 3
-		stopCh := make(chan struct{})
-		sess.OnEnd = func(s *Session, winTeam int, reason EndReason) {
-			close(stopCh)
-			gm.Remove(s.ID)
+		// spawnBots wires up bot goroutines, cleanup, and recursive rematch
+		// support so every rematch also gets fresh bots.
+		var spawnBots func(s *Session)
+		spawnBots = func(s *Session) {
+			stopCh := make(chan struct{})
+			s.OnEnd = func(sess *Session, winTeam int, reason EndReason) {
+				close(stopCh)
+				gm.Remove(sess.ID)
+			}
+			s.OnRematch = func(newSess *Session) {
+				spawnBots(newSess)
+			}
+			for i := 1; i <= 3; i++ {
+				idx := i
+				go RunBot(s, idx, stopCh)
+			}
 		}
-
-		for i := 1; i <= 3; i++ {
-			idx := i
-			go RunBot(sess, idx, stopCh)
-		}
+		spawnBots(sess)
 
 		sess.Start()
 

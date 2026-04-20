@@ -35,8 +35,9 @@ type Session struct {
 	rematchVotes map[string]bool
 	rematchMu    sync.Mutex
 
-	OnUpdate func(s *Session)
-	OnEnd    func(s *Session, winTeam int, reason EndReason)
+	OnUpdate  func(s *Session)
+	OnEnd     func(s *Session, winTeam int, reason EndReason)
+	OnRematch func(newSession *Session)
 }
 
 // Player links a lobby slot to a live WebSocket sender.

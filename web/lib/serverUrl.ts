@@ -12,3 +12,14 @@ export function wsUrl(): string {
     .replace(/^http:\/\//, 'ws://')
     .replace(/\/$/, '');
 }
+
+/** Fetches a short-lived HMAC ticket from the Next.js API route for WebSocket auth. */
+export async function fetchWsTicket(): Promise<string> {
+  try {
+    const res = await fetch('/api/ws-ticket');
+    const { ticket } = await res.json();
+    return ticket ?? '';
+  } catch {
+    return '';
+  }
+}
