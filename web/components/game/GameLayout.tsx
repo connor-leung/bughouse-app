@@ -82,13 +82,14 @@ export default function GameLayout({ gameId }: Props) {
     }
   }, [pendingRematch, gameId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Redirect home if the game no longer exists on the server
+  // Redirect home if the game no longer exists or can't be reached (and we never got game state)
   useEffect(() => {
-    if (error === 'game not found') {
+    const isDeadEnd = error === 'game not found' || (!gameState && error === 'Connection error');
+    if (isDeadEnd) {
       const t = setTimeout(() => router.push('/home'), 2000);
       return () => clearTimeout(t);
     }
-  }, [error]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [error, gameState]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Clear optimistic snapshot when server state arrives
   useEffect(() => { setOptimisticSnapshot(null); }, [gameState]);
@@ -103,12 +104,12 @@ export default function GameLayout({ gameId }: Props) {
   }, [showChat]);
 
   if (!gameState || !myRole) {
-    const notFound = error === 'game not found';
+    const isDeadEnd = error === 'game not found' || (!gameState && error === 'Connection error');
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-500">
         <div className="text-center">
-          <p className="text-lg">{notFound ? 'Game not found' : isConnected ? 'Waiting for game state...' : 'Connecting...'}</p>
-          {notFound
+          <p className="text-lg">{isDeadEnd ? 'Game not found' : isConnected ? 'Waiting for game state...' : 'Connecting...'}</p>
+          {isDeadEnd
             ? <p className="text-gray-500 text-sm mt-2">Redirecting to home...</p>
             : error && <p className="text-red-400 text-sm mt-2">{error}</p>}
         </div>
