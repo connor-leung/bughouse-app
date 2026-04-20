@@ -6,6 +6,7 @@ interface LobbyActions {
   joinLobby: (lobbyId: string, slotIndex: number) => void;
   leaveLobby: (lobbyId: string) => void;
   startGame: (lobbyId: string) => void;
+  readyLobby: (lobbyId: string) => void;
 }
 
 interface LobbyStore {

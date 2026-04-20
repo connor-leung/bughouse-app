@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { wsUrl } from '@/lib/serverUrl';
+import { wsUrl, fetchWsTicket } from '@/lib/serverUrl';
 import { BoardRole, Lobby, TimeControl, WsEnvelope } from '@/lib/types';
 import { useLobbyStore } from '@/store/lobbyStore';
 
@@ -21,9 +21,11 @@ export function useLobbySocket(userId: string, displayName: string) {
       }
     }
 
-    function connect() {
+    async function connect() {
       if (destroyed) return;
-      const url = `${wsUrl()}/lobby?userId=${encodeURIComponent(userId)}&displayName=${encodeURIComponent(displayName)}`;
+      const ticket = await fetchWsTicket();
+      if (destroyed) return;
+      const url = `${wsUrl()}/lobby?userId=${encodeURIComponent(userId)}&displayName=${encodeURIComponent(displayName)}${ticket ? `&ticket=${encodeURIComponent(ticket)}` : ''}`;
       ws = new WebSocket(url);
 
       ws.onopen = () => {
@@ -81,6 +83,8 @@ export function useLobbySocket(userId: string, displayName: string) {
         send('lobby:leave', { lobbyId }),
       startGame: (lobbyId: string) =>
         send('lobby:start', { lobbyId }),
+      readyLobby: (lobbyId: string) =>
+        send('lobby:ready', { lobbyId }),
     });
 
     connect();

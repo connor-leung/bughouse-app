@@ -47,21 +47,23 @@ type PlayerSlot struct {
 }
 
 type Lobby struct {
-	ID          string       `json:"id"`
-	Name        string       `json:"name"`
-	HostUserID  string       `json:"hostUserId"`
-	Slots       [4]*PlayerSlot `json:"slots"`
-	TimeControl TimeControl  `json:"timeControl"`
-	Status      Status       `json:"status"`
+	ID             string         `json:"id"`
+	Name           string         `json:"name"`
+	HostUserID     string         `json:"hostUserId"`
+	Slots          [4]*PlayerSlot `json:"slots"`
+	TimeControl    TimeControl    `json:"timeControl"`
+	Status         Status         `json:"status"`
+	ReadyPlayerIDs []string       `json:"readyPlayerIds"`
 }
 
 func newLobby(name, hostUserID, hostDisplayName string, tc TimeControl) *Lobby {
 	l := &Lobby{
-		ID:          generateID(),
-		Name:        name,
-		HostUserID:  hostUserID,
-		TimeControl: tc,
-		Status:      StatusWaiting,
+		ID:             generateID(),
+		Name:           name,
+		HostUserID:     hostUserID,
+		TimeControl:    tc,
+		Status:         StatusWaiting,
+		ReadyPlayerIDs: []string{},
 	}
 	// Host takes slot 0 (board1White)
 	l.Slots[0] = &PlayerSlot{
@@ -95,6 +97,39 @@ func (l *Lobby) Leave(userID string) {
 			l.Slots[i] = nil
 		}
 	}
+	l.SetUnready(userID)
+}
+
+func (l *Lobby) SetReady(userID string) {
+	for _, id := range l.ReadyPlayerIDs {
+		if id == userID {
+			return
+		}
+	}
+	l.ReadyPlayerIDs = append(l.ReadyPlayerIDs, userID)
+}
+
+func (l *Lobby) SetUnready(userID string) {
+	out := l.ReadyPlayerIDs[:0]
+	for _, id := range l.ReadyPlayerIDs {
+		if id != userID {
+			out = append(out, id)
+		}
+	}
+	l.ReadyPlayerIDs = out
+}
+
+func (l *Lobby) IsReady(userID string) bool {
+	for _, id := range l.ReadyPlayerIDs {
+		if id == userID {
+			return true
+		}
+	}
+	return false
+}
+
+func (l *Lobby) AllReady() bool {
+	return l.IsFull() && len(l.ReadyPlayerIDs) == 4
 }
 
 func (l *Lobby) PlayerCount() int {

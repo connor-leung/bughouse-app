@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLobbyStore } from '@/store/lobbyStore';
 import { getUserId } from '@/lib/identity';
@@ -9,6 +9,7 @@ import PlayerSlotTile from './PlayerSlotTile';
 
 const TEAM_A_ROLES: BoardRole[] = ['board1White', 'board2Black'];
 const TEAM_B_ROLES: BoardRole[] = ['board1Black', 'board2White'];
+const ROLE_ORDER: BoardRole[] = ['board1White', 'board1Black', 'board2White', 'board2Black'];
 
 interface Props {
   lobbyId: string;
@@ -27,7 +28,6 @@ function TeamSection({
   userId: string;
   onJoin: (role: BoardRole, slotIndex: number) => void;
 }) {
-  const ROLE_ORDER: BoardRole[] = ['board1White', 'board1Black', 'board2White', 'board2Black'];
   return (
     <div>
       <p className="text-xs text-gray-500 font-semibold uppercase tracking-widest mb-2">{title}</p>
@@ -35,12 +35,14 @@ function TeamSection({
         {roles.map((role) => {
           const slotIndex = ROLE_ORDER.indexOf(role);
           const slot = lobby.slots[slotIndex] ?? null;
+          const isReady = slot ? (lobby.readyPlayerIds ?? []).includes(slot.userId) : false;
           return (
             <PlayerSlotTile
               key={role}
               role={role}
               slot={slot}
               isMe={slot?.userId === userId}
+              isReady={isReady}
               onJoin={() => onJoin(role, slotIndex)}
             />
           );
@@ -59,9 +61,24 @@ export default function LobbyRoom({ lobbyId }: Props) {
   const error = useLobbyStore((s) => s.error);
   const setError = useLobbyStore((s) => s.setError);
 
+  const [countdown, setCountdown] = useState<number | null>(null);
+
   useEffect(() => {
     if (lobby) setCurrentLobby(lobby);
   }, [lobby, setCurrentLobby]);
+
+  // Drive countdown from lobby status
+  useEffect(() => {
+    if (lobby?.status === 'starting') {
+      setCountdown(3);
+      const interval = setInterval(() => {
+        setCountdown((n) => (n !== null && n > 1 ? n - 1 : n));
+      }, 1000);
+      return () => clearInterval(interval);
+    } else {
+      setCountdown(null);
+    }
+  }, [lobby?.status]);
 
   function handleLeave() {
     actions?.leaveLobby(lobbyId);
@@ -73,67 +90,79 @@ export default function LobbyRoom({ lobbyId }: Props) {
     actions?.joinLobby(lobbyId, slotIndex);
   }
 
+  function handleReady() {
+    setError(null);
+    actions?.readyLobby(lobbyId);
+  }
+
   if (!lobby) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500">
-        Loading lobby...
+      <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+        <p className="text-gray-500 text-center">Loading lobby...</p>
       </div>
     );
   }
 
   const filled = lobby.slots.filter(Boolean).length;
-  const isFull = filled === 4;
-  const isHost = lobby.hostUserId === userId;
   const { minutes, incrementSeconds } = lobby.timeControl;
   const tcLabel = incrementSeconds > 0 ? `${minutes}+${incrementSeconds}` : `${minutes}+0`;
 
+  const mySlot = lobby.slots.find((s) => s?.userId === userId);
+  const imInLobby = !!mySlot;
+  const imReady = imInLobby && (lobby.readyPlayerIds ?? []).includes(userId);
+  const readyCount = (lobby.readyPlayerIds ?? []).length;
+  const isStarting = lobby.status === 'starting';
+
   return (
-    <div className="min-h-screen p-4 sm:p-6 max-w-md mx-auto">
+    <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+      {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={handleLeave} className="text-gray-400 hover:text-gray-200">
-          ← Back
+        <button onClick={handleLeave} className="text-gray-400 hover:text-gray-200 transition-colors">
+          ←
         </button>
         <div>
           <h1 className="text-xl font-bold">{lobby.name}</h1>
-          <p className="text-sm text-gray-400">{tcLabel} min &middot; {filled}/4 players</p>
+          <p className="text-sm text-gray-400">{tcLabel} &middot; {filled}/4 players</p>
         </div>
       </div>
 
       {error && (
-        <div className="bg-red-900/50 border border-red-700 rounded-lg p-3 mb-2 text-red-300 text-sm">
+        <div className="bg-red-900/50 border border-red-700 rounded-lg p-3 mb-4 text-red-300 text-sm">
           {error}
         </div>
       )}
 
-      <div className="flex flex-col gap-6">
-        <TeamSection
-          title="Team A"
-          roles={TEAM_A_ROLES}
-          lobby={lobby}
-          userId={userId}
-          onJoin={handleJoin}
-        />
-        <TeamSection
-          title="Team B"
-          roles={TEAM_B_ROLES}
-          lobby={lobby}
-          userId={userId}
-          onJoin={handleJoin}
-        />
+      {/* Player slots */}
+      <div className="flex flex-col gap-6 mb-6">
+        <TeamSection title="Team A" roles={TEAM_A_ROLES} lobby={lobby} userId={userId} onJoin={handleJoin} />
+        <TeamSection title="Team B" roles={TEAM_B_ROLES} lobby={lobby} userId={userId} onJoin={handleJoin} />
       </div>
 
-      {isHost && (
-        <button
-          onClick={() => actions?.startGame(lobbyId)}
-          disabled={!isFull}
-          className="mt-8 w-full bg-green-700 hover:bg-green-600 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl py-3 font-bold text-lg transition-colors"
-        >
-          {isFull ? 'Start Game' : `Waiting for players (${filled}/4)`}
-        </button>
-      )}
-      {!isHost && !isFull && (
-        <p className="mt-8 text-center text-gray-500 text-sm">
-          Waiting for host to start ({filled}/4 players)
+      {/* Ready / countdown area */}
+      {isStarting ? (
+        <div className="text-center py-4">
+          <p className="text-5xl font-black text-green-400 mb-1">{countdown}</p>
+          <p className="text-gray-400 text-sm">All players ready — starting…</p>
+        </div>
+      ) : imInLobby ? (
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={handleReady}
+            className={`w-full rounded-xl py-3 font-bold text-base transition-colors ${
+              imReady
+                ? 'bg-green-800/60 hover:bg-red-900/60 text-green-300 hover:text-red-300 border border-green-700 hover:border-red-700'
+                : 'bg-green-700 hover:bg-green-600 text-white'
+            }`}
+          >
+            {imReady ? 'Unready' : 'Ready'}
+          </button>
+          <p className="text-center text-gray-500 text-xs">
+            {readyCount}/4 ready
+          </p>
+        </div>
+      ) : (
+        <p className="text-center text-gray-500 text-sm">
+          Join a slot to ready up
         </p>
       )}
     </div>

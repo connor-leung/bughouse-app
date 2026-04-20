@@ -25,6 +25,7 @@ export interface Lobby {
   slots: (PlayerSlot | null)[]; // always length 4
   timeControl: TimeControl;
   status: LobbyStatus;
+  readyPlayerIds: string[];
 }
 
 export interface BoardSnapshot {
