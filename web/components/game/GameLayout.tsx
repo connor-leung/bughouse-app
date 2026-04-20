@@ -64,7 +64,6 @@ export default function GameLayout({ gameId }: Props) {
   const chatMessages = useGameStore((s) => s.chatMessages);
   const isConnected = useGameStore((s) => s.isConnected);
   const error = useGameStore((s) => s.error);
-  const resetGame = useGameStore((s) => s.resetGame);
   const rematchVotes = useGameStore((s) => s.rematchVotes);
   const pendingRematch = useGameStore((s) => s.pendingRematch);
 
@@ -76,15 +75,20 @@ export default function GameLayout({ gameId }: Props) {
   const { mainBoardWidth, partnerBoardWidth, isMobile } = useBoardWidth();
   const clocks = useChessClocks(gameState, !!gameResult);
 
-  // Reset store on unmount
-  useEffect(() => () => resetGame(), [resetGame]);
-
   // Navigate to rematch game when all players vote
   useEffect(() => {
-    if (pendingRematch) {
+    if (pendingRematch && pendingRematch.gameId !== gameId) {
       router.push(`/game/${pendingRematch.gameId}`);
     }
-  }, [pendingRematch]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pendingRematch, gameId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Redirect home if the game no longer exists on the server
+  useEffect(() => {
+    if (error === 'game not found') {
+      const t = setTimeout(() => router.push('/home'), 2000);
+      return () => clearTimeout(t);
+    }
+  }, [error]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Clear optimistic snapshot when server state arrives
   useEffect(() => { setOptimisticSnapshot(null); }, [gameState]);
@@ -99,11 +103,14 @@ export default function GameLayout({ gameId }: Props) {
   }, [showChat]);
 
   if (!gameState || !myRole) {
+    const notFound = error === 'game not found';
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-500">
         <div className="text-center">
-          <p className="text-lg">{isConnected ? 'Waiting for game state...' : 'Connecting...'}</p>
-          {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
+          <p className="text-lg">{notFound ? 'Game not found' : isConnected ? 'Waiting for game state...' : 'Connecting...'}</p>
+          {notFound
+            ? <p className="text-gray-500 text-sm mt-2">Redirecting to home...</p>
+            : error && <p className="text-red-400 text-sm mt-2">{error}</p>}
         </div>
       </div>
     );
