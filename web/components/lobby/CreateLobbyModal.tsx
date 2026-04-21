@@ -13,17 +13,18 @@ const PRESETS: TimeControl[] = [
 
 interface Props {
   onClose: () => void;
-  onCreate: (name: string, tc: TimeControl) => void;
+  onCreate: (name: string, tc: TimeControl, randomTeams: boolean) => void;
 }
 
 export default function CreateLobbyModal({ onClose, onCreate }: Props) {
   const [name, setName] = useState('');
   const [tc, setTc] = useState<TimeControl>(PRESETS[2]);
+  const [randomTeams, setRandomTeams] = useState(true);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = name.trim() || 'New Lobby';
-    onCreate(trimmed, tc);
+    onCreate(trimmed, tc, randomTeams);
   }
 
   return (
@@ -62,6 +63,19 @@ export default function CreateLobbyModal({ onClose, onCreate }: Props) {
                 );
               })}
             </div>
+          </div>
+
+          <div>
+            <button
+              type="button"
+              onClick={() => setRandomTeams((v) => !v)}
+              className="flex items-center gap-2 w-full"
+            >
+              <div className={`w-9 h-5 rounded-full transition-colors ${randomTeams ? 'bg-blue-600' : 'bg-gray-700'}`}>
+                <div className={`w-4 h-4 rounded-full bg-white mt-0.5 transition-transform ${randomTeams ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
+              </div>
+              <span className="text-sm text-gray-300">Random teams</span>
+            </button>
           </div>
 
           <div className="flex gap-3 mt-2">

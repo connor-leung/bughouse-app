@@ -15,15 +15,16 @@ interface Props {
   isMe: boolean;
   isReady: boolean;
   onJoin: () => void;
+  hideRole?: boolean;
 }
 
-export default function PlayerSlotTile({ role, slot, isMe, isReady, onJoin }: Props) {
+export default function PlayerSlotTile({ role, slot, isMe, isReady, onJoin, hideRole }: Props) {
   return (
     <div className={`flex items-center justify-between p-3 rounded-xl border ${isMe ? 'border-blue-600 bg-blue-900/20' : 'border-gray-800 bg-gray-900/50'}`}>
       <div className="flex items-center gap-2 min-w-0">
         <div className={`w-2 h-2 rounded-full flex-shrink-0 ${slot ? (isReady ? 'bg-green-400' : 'bg-gray-600') : 'bg-gray-800'}`} />
         <div className="min-w-0">
-          <p className="text-xs text-gray-500 font-medium">{ROLE_LABELS[role]}</p>
+          {!hideRole && <p className="text-xs text-gray-500 font-medium">{ROLE_LABELS[role]}</p>}
           {slot ? (
             <p className={`font-semibold mt-0.5 truncate ${isMe ? 'text-blue-300' : 'text-gray-200'}`}>
               {slot.displayName} {isMe && <span className="text-xs text-blue-400">(you)</span>}

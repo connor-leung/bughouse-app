@@ -24,6 +24,7 @@ export interface Lobby {
   hostUserId: string;
   slots: (PlayerSlot | null)[]; // always length 4
   timeControl: TimeControl;
+  randomTeams: boolean;
   status: LobbyStatus;
   readyPlayerIds: string[];
 }

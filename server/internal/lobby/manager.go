@@ -12,8 +12,8 @@ func NewManager() *Manager {
 	return &Manager{lobbies: make(map[string]*Lobby)}
 }
 
-func (m *Manager) Create(name, hostUserID, hostDisplayName string, tc TimeControl) *Lobby {
-	l := newLobby(name, hostUserID, hostDisplayName, tc)
+func (m *Manager) Create(name, hostUserID, hostDisplayName string, tc TimeControl, randomTeams bool) *Lobby {
+	l := newLobby(name, hostUserID, hostDisplayName, tc, randomTeams)
 	m.mu.Lock()
 	m.lobbies[l.ID] = l
 	m.mu.Unlock()

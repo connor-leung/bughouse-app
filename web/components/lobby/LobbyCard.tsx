@@ -22,7 +22,8 @@ export default function LobbyCard({ lobby, onJoin, onView }: Props) {
       <div>
         <p className="font-semibold text-gray-100">{lobby.name}</p>
         <p className="text-sm text-gray-400 mt-0.5">
-          {tcLabel} min &middot; {filled}/4 players
+          {tcLabel} &middot; {filled}/4
+          {lobby.randomTeams && <span className="ml-1 text-blue-400">&middot; Random</span>}
         </p>
       </div>
       {alreadyIn ? (

@@ -52,26 +52,54 @@ type Lobby struct {
 	HostUserID     string         `json:"hostUserId"`
 	Slots          [4]*PlayerSlot `json:"slots"`
 	TimeControl    TimeControl    `json:"timeControl"`
+	RandomTeams    bool           `json:"randomTeams"`
 	Status         Status         `json:"status"`
 	ReadyPlayerIDs []string       `json:"readyPlayerIds"`
 }
 
-func newLobby(name, hostUserID, hostDisplayName string, tc TimeControl) *Lobby {
+func newLobby(name, hostUserID, hostDisplayName string, tc TimeControl, randomTeams bool) *Lobby {
 	l := &Lobby{
 		ID:             generateID(),
 		Name:           name,
 		HostUserID:     hostUserID,
 		TimeControl:    tc,
+		RandomTeams:    randomTeams,
 		Status:         StatusWaiting,
 		ReadyPlayerIDs: []string{},
 	}
-	// Host takes slot 0 (board1White)
+	// Host takes slot 0
 	l.Slots[0] = &PlayerSlot{
 		UserID:      hostUserID,
 		DisplayName: hostDisplayName,
 		Role:        Board1White,
 	}
 	return l
+}
+
+// ShuffleTeams randomly assigns the current players to roles.
+func (l *Lobby) ShuffleTeams() {
+	var players []struct {
+		userID      string
+		displayName string
+	}
+	for _, s := range l.Slots {
+		if s != nil {
+			players = append(players, struct {
+				userID      string
+				displayName string
+			}{s.UserID, s.DisplayName})
+		}
+	}
+	rand.Shuffle(len(players), func(i, j int) {
+		players[i], players[j] = players[j], players[i]
+	})
+	for i, p := range players {
+		l.Slots[i] = &PlayerSlot{
+			UserID:      p.userID,
+			DisplayName: p.displayName,
+			Role:        allRoles[i],
+		}
+	}
 }
 
 func (l *Lobby) Join(userID, displayName string, slotIndex int) error {

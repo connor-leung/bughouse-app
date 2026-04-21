@@ -81,12 +81,13 @@ func (h *lobbyHub) handleMessage(c *Client, env Envelope) {
 		var req struct {
 			Name        string            `json:"name"`
 			TimeControl lobby.TimeControl `json:"timeControl"`
+			RandomTeams bool              `json:"randomTeams"`
 		}
 		if err := json.Unmarshal(env.Data, &req); err != nil || req.Name == "" {
 			c.Send("lobby:error", map[string]string{"message": "invalid create request"})
 			return
 		}
-		l := h.manager.Create(req.Name, c.UserID, c.DisplayName, req.TimeControl)
+		l := h.manager.Create(req.Name, c.UserID, c.DisplayName, req.TimeControl, req.RandomTeams)
 		c.Send("lobby:created", l)
 		h.broadcast("lobby:list", h.manager.List())
 
@@ -208,6 +209,9 @@ func (h *lobbyHub) handleMessage(c *Client, env Envelope) {
 }
 
 func (h *lobbyHub) startGame(l *lobby.Lobby) {
+	if l.RandomTeams {
+		l.ShuffleTeams()
+	}
 	sess := game.NewSession(l.ID, l.Slots, l.TimeControl)
 	h.gameManager.Add(sess)
 	l.Status = lobby.StatusInProgress

@@ -106,6 +106,7 @@ export default function LobbyRoom({ lobbyId }: Props) {
   const filled = lobby.slots.filter(Boolean).length;
   const { minutes, incrementSeconds } = lobby.timeControl;
   const tcLabel = incrementSeconds > 0 ? `${minutes}+${incrementSeconds}` : `${minutes}+0`;
+  const randomTeams = lobby.randomTeams;
 
   const mySlot = lobby.slots.find((s) => s?.userId === userId);
   const imInLobby = !!mySlot;
@@ -122,7 +123,10 @@ export default function LobbyRoom({ lobbyId }: Props) {
         </button>
         <div>
           <h1 className="text-xl font-bold">{lobby.name}</h1>
-          <p className="text-sm text-gray-400">{tcLabel} &middot; {filled}/4 players</p>
+          <p className="text-sm text-gray-400">
+            {tcLabel} &middot; {filled}/4 players
+            {randomTeams && <span className="ml-1 text-blue-400">&middot; Random teams</span>}
+          </p>
         </div>
       </div>
 
@@ -134,8 +138,33 @@ export default function LobbyRoom({ lobbyId }: Props) {
 
       {/* Player slots */}
       <div className="flex flex-col gap-6 mb-6">
-        <TeamSection title="Team A" roles={TEAM_A_ROLES} lobby={lobby} userId={userId} onJoin={handleJoin} />
-        <TeamSection title="Team B" roles={TEAM_B_ROLES} lobby={lobby} userId={userId} onJoin={handleJoin} />
+        {randomTeams ? (
+          <div>
+            <p className="text-xs text-gray-500 font-semibold uppercase tracking-widest mb-2">Players</p>
+            <div className="flex flex-col gap-2">
+              {ROLE_ORDER.map((role, i) => {
+                const slot = lobby.slots[i] ?? null;
+                const isReady = slot ? (lobby.readyPlayerIds ?? []).includes(slot.userId) : false;
+                return (
+                  <PlayerSlotTile
+                    key={role}
+                    role={role}
+                    slot={slot}
+                    isMe={slot?.userId === userId}
+                    isReady={isReady}
+                    onJoin={() => handleJoin(role, i)}
+                    hideRole
+                  />
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <>
+            <TeamSection title="Team A" roles={TEAM_A_ROLES} lobby={lobby} userId={userId} onJoin={handleJoin} />
+            <TeamSection title="Team B" roles={TEAM_B_ROLES} lobby={lobby} userId={userId} onJoin={handleJoin} />
+          </>
+        )}
       </div>
 
       {/* Ready / countdown area */}

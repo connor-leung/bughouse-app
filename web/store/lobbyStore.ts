@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { BoardRole, Lobby, TimeControl } from '@/lib/types';
 
 interface LobbyActions {
-  createLobby: (name: string, timeControl: TimeControl) => void;
+  createLobby: (name: string, timeControl: TimeControl, randomTeams: boolean) => void;
   joinLobby: (lobbyId: string, slotIndex: number) => void;
   leaveLobby: (lobbyId: string) => void;
   startGame: (lobbyId: string) => void;

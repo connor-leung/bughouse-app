@@ -69,8 +69,8 @@ export default function LobbyList() {
       {showCreate && (
         <CreateLobbyModal
           onClose={() => setShowCreate(false)}
-          onCreate={(name, tc) => {
-            actions?.createLobby(name, tc);
+          onCreate={(name, tc, randomTeams) => {
+            actions?.createLobby(name, tc, randomTeams);
             setShowCreate(false);
           }}
         />

@@ -75,8 +75,8 @@ export function useLobbySocket(userId: string, displayName: string) {
     }
 
     store.setActions({
-      createLobby: (name: string, timeControl: TimeControl) =>
-        send('lobby:create', { name, timeControl }),
+      createLobby: (name: string, timeControl: TimeControl, randomTeams: boolean) =>
+        send('lobby:create', { name, timeControl, randomTeams }),
       joinLobby: (lobbyId: string, slotIndex: number) =>
         send('lobby:join', { lobbyId, slotIndex }),
       leaveLobby: (lobbyId: string) =>
