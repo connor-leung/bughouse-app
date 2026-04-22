@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getUserId, getDisplayName } from '@/lib/identity';
-import { httpUrl } from '@/lib/serverUrl';
+import { httpUrl, fetchWsTicket } from '@/lib/serverUrl';
 
 export default function HomePage() {
   const router = useRouter();
@@ -21,8 +21,9 @@ export default function HomePage() {
     try {
       const userId = getUserId();
       const displayName = getDisplayName();
+      const ticket = await fetchWsTicket();
       const res = await fetch(
-        `${httpUrl()}/test-game?userId=${encodeURIComponent(userId)}&displayName=${encodeURIComponent(displayName)}`
+        `${httpUrl()}/test-game?userId=${encodeURIComponent(userId)}&displayName=${encodeURIComponent(displayName)}${ticket ? `&ticket=${encodeURIComponent(ticket)}` : ''}`
       );
       if (!res.ok) throw new Error('Failed to create test game');
       const { gameId } = await res.json();
