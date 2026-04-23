@@ -214,6 +214,7 @@ func (h *lobbyHub) startGame(l *lobby.Lobby) {
 	}
 	sess := game.NewSession(l.ID, l.Slots, l.TimeControl)
 	h.gameManager.Add(sess)
+	sess.Start()
 	l.Status = lobby.StatusInProgress
 
 	h.mu.RLock()
