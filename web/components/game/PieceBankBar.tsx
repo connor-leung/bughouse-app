@@ -26,6 +26,8 @@ export default function PieceBankBar({ bank, color, selectedPiece, onSelectPiece
     );
   }
 
+  const tileBg = color === 'white' ? 'bg-gray-700' : 'bg-gray-300';
+
   return (
     <div className="flex items-center gap-2 flex-wrap px-2">
       {available.map((role) => {
@@ -36,14 +38,18 @@ export default function PieceBankBar({ bank, color, selectedPiece, onSelectPiece
             key={role}
             disabled={disabled}
             onClick={() => onSelectPiece(isSelected ? null : role)}
-            className={`flex items-center gap-1 px-2 py-1 rounded-lg text-lg transition-colors
-              ${isSelected ? 'bg-yellow-600 text-white ring-2 ring-yellow-400' : 'bg-gray-800 hover:bg-gray-700 text-gray-200'}
-              ${disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+            className={`relative flex items-center justify-center rounded-lg transition-colors
+              ${isSelected ? 'ring-2 ring-yellow-400 ring-offset-1 ring-offset-gray-900' : ''}
+              ${disabled ? 'opacity-60 cursor-default' : 'hover:scale-110'}`}
           >
-            <span className="w-8 h-8 flex items-center justify-center">
-              {defaultPieces[(color === 'white' ? 'w' : 'b') + ROLE_LETTER[role]]?.({ svgStyle: { width: '32px', height: '32px' } })}
+            <span className={`w-10 h-10 flex items-center justify-center rounded-lg ${isSelected ? 'bg-yellow-600' : tileBg}`}>
+              {defaultPieces[(color === 'white' ? 'w' : 'b') + ROLE_LETTER[role]]?.({ svgStyle: { width: '36px', height: '36px' } })}
             </span>
-            {count > 1 && <span className="text-xs font-bold">×{count}</span>}
+            {count > 1 && (
+              <span className="absolute -bottom-1 -right-1 bg-blue-500 text-white text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center leading-none">
+                {count}
+              </span>
+            )}
           </button>
         );
       })}
