@@ -15,6 +15,7 @@ import ChessClock from './ChessClock';
 import PieceBankBar from './PieceBankBar';
 import TeamChat from './TeamChat';
 import GameResultBanner from './GameResultBanner';
+import Scoreboard from './Scoreboard';
 
 interface Props {
   gameId: string;
@@ -139,6 +140,10 @@ export default function GameLayout({ gameId }: Props) {
   // Banks
   const myBank = gameState.bank[myRole];
   const partnerBank = gameState.bank[partnerRole_];
+  const opponentRole_ = opponentRole(myRole);
+  const opponentBank = gameState.bank[opponentRole_];
+  const opponentPartnerRole_ = partnerRole(opponentRole_);
+  const opponentPartnerBank = gameState.bank[opponentPartnerRole_];
 
   function handleMove(from: string, to: string, promotion?: string) {
     if (myBoard === 1) sendMove(from, to, promotion);
@@ -223,8 +228,19 @@ export default function GameLayout({ gameId }: Props) {
             />
 
             <div className="flex flex-col items-center gap-2">
+              <div className="bg-gray-900 rounded-xl p-2 w-full">
+                <p className="text-xs text-gray-500 mb-1 px-1">Opponent&apos;s reserve</p>
+                <PieceBankBar
+                  bank={opponentBank}
+                  color={roleColor(opponentRole_)}
+                  selectedPiece={null}
+                  onSelectPiece={() => {}}
+                  disabled
+                />
+              </div>
+
               <div className="bg-gray-900 rounded-xl p-2">
-                <p className="text-xs text-gray-500 mb-1 px-1">Partner&apos;s captures (for you)</p>
+                <p className="text-xs text-gray-500 mb-1 px-1">Your reserve</p>
                 <PieceBankBar
                   bank={myBank}
                   color={myColor}
@@ -254,7 +270,7 @@ export default function GameLayout({ gameId }: Props) {
             />
           </div>
 
-          {/* Right column: partner board */}
+          {/* Right column: partner board + scoreboard */}
           <div className="flex flex-col items-center gap-2 w-full mx-auto md:mx-0 border-t border-gray-800 pt-4 md:border-0 md:pt-0" style={{ maxWidth: partnerBoardWidth }}>
             <div className="flex items-center justify-between w-full">
               <p className="text-xs text-gray-500">Partner&apos;s board</p>
@@ -273,16 +289,30 @@ export default function GameLayout({ gameId }: Props) {
               boardWidth={partnerBoardWidth}
             />
 
-            <div className="bg-gray-900 rounded-xl p-2 w-full">
-              <p className="text-xs text-gray-500 mb-1 px-1">Your captures (for partner)</p>
-              <PieceBankBar
-                bank={partnerBank}
-                color={partnerColor}
-                selectedPiece={null}
-                onSelectPiece={() => {}}
-                disabled
-              />
+            <div className="flex gap-2 w-full">
+              <div className="bg-gray-900 rounded-xl p-2 flex-1">
+                <p className="text-xs text-gray-500 mb-1 px-1">Partner&apos;s reserve</p>
+                <PieceBankBar
+                  bank={partnerBank}
+                  color={partnerColor}
+                  selectedPiece={null}
+                  onSelectPiece={() => {}}
+                  disabled
+                />
+              </div>
+              <div className="bg-gray-900 rounded-xl p-2 flex-1">
+                <p className="text-xs text-gray-500 mb-1 px-1">Opp. partner&apos;s reserve</p>
+                <PieceBankBar
+                  bank={opponentPartnerBank}
+                  color={roleColor(opponentPartnerRole_)}
+                  selectedPiece={null}
+                  onSelectPiece={() => {}}
+                  disabled
+                />
+              </div>
             </div>
+
+            <Scoreboard players={gameState.players} scores={gameState.scores} myUserId={userId} />
           </div>
 
         </div>
