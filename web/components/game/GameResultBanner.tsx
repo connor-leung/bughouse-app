@@ -7,6 +7,7 @@ const REASON_LABELS: Record<string, string> = {
   checkmate: 'Checkmate',
   timeout: 'Time',
   resignation: 'Resignation',
+  stalemate: 'Stalemate',
 };
 
 const ROLE_LABELS: Record<BoardRole, string> = {
@@ -28,7 +29,6 @@ export default function GameResultBanner({ result, myRole, players, rematchVotes
   const router = useRouter();
   const myTeam = myRole ? roleTeam(myRole) : null;
   const won = myTeam === result.winningTeam;
-  const scores = result.scores ?? [0, 0];
   const myVoted = myRole ? rematchVotes.includes(players.find(p => p.role === myRole)?.userId ?? '') : false;
 
   return (
@@ -41,24 +41,12 @@ export default function GameResultBanner({ result, myRole, players, rematchVotes
           {won ? 'Victory' : 'Defeat'}
         </span>
         <span className="text-gray-500 text-xs">
-          Team {result.winningTeam} · {REASON_LABELS[result.reason] ?? result.reason}
-        </span>
-      </div>
-
-      {/* Scoreboard */}
-      <div className="flex items-center gap-2 text-xs">
-        <span className={`font-semibold ${result.winningTeam === 1 ? 'text-white' : 'text-gray-500'}`}>
-          A {scores[0]}
-        </span>
-        <span className="text-gray-700">–</span>
-        <span className={`font-semibold ${result.winningTeam === 2 ? 'text-white' : 'text-gray-500'}`}>
-          {scores[1]} B
+          {REASON_LABELS[result.reason] ?? result.reason}
         </span>
       </div>
 
       {/* Rematch votes + actions */}
       <div className="flex items-center gap-2">
-        {/* Per-player ready dots */}
         <div className="flex items-center gap-1">
           {players.map((p) => (
             <div
@@ -78,7 +66,7 @@ export default function GameResultBanner({ result, myRole, players, rematchVotes
           {myVoted ? 'Waiting…' : 'Rematch'}
         </button>
         <button
-          onClick={() => router.push('/lobbies')}
+          onClick={() => router.push('/home')}
           className="bg-gray-800 hover:bg-gray-700 rounded-lg px-3 py-1 text-gray-300 transition-colors"
         >
           Leave
