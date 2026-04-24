@@ -1,3 +1,7 @@
+export type PremoveAction =
+  | { kind: 'move'; from: string; to: string; promotion?: string }
+  | { kind: 'drop'; pieceRole: string; to: string };
+
 export type BoardRole =
   | 'board1White'
   | 'board1Black'
@@ -60,6 +64,7 @@ export interface GameState {
   clocksMs: [number, number, number, number];
   players: PlayerSlot[];
   scores: [number, number];
+  playerScores: Record<string, number>; // userID → cumulative wins
 }
 
 export interface GameResult {

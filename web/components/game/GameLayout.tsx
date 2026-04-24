@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Chess, Square, PieceSymbol } from 'chess.js';
 import { useRouter } from 'next/navigation';
 import { getUserId } from '@/lib/identity';
@@ -8,7 +8,7 @@ import { useGameSocket } from '@/lib/hooks/useGameSocket';
 import { useChessClocks } from '@/lib/hooks/useChessClocks';
 import { useBoardWidth } from '@/lib/hooks/useBoardWidth';
 import { useGameStore } from '@/store/gameStore';
-import { BoardRole, BoardSnapshot, clockIndex, opponentRole, partnerRole, roleBoard, roleColor } from '@/lib/types';
+import { BoardRole, BoardSnapshot, PieceBank, PremoveAction, clockIndex, opponentRole, partnerRole, roleBoard, roleColor } from '@/lib/types';
 import InteractiveBoard from './InteractiveBoard';
 import ReadOnlyBoard from './ReadOnlyBoard';
 import ChessClock from './ChessClock';
@@ -72,6 +72,8 @@ export default function GameLayout({ gameId }: Props) {
   const [selectedDropPiece, setSelectedDropPiece] = useState<string | null>(null);
   const [unread, setUnread] = useState(0);
   const [optimisticSnapshot, setOptimisticSnapshot] = useState<BoardSnapshot | null>(null);
+  const [pendingPremove, setPendingPremove] = useState<PremoveAction | null>(null);
+  const prevIsMyTurnRef = useRef(false);
 
   const { mainBoardWidth, partnerBoardWidth, isMobile } = useBoardWidth();
   const clocks = useChessClocks(gameState, !!gameResult);
@@ -94,6 +96,53 @@ export default function GameLayout({ gameId }: Props) {
 
   // Clear optimistic snapshot when server state arrives
   useEffect(() => { setOptimisticSnapshot(null); }, [gameState]);
+
+  // Fire queued premove when it becomes our turn
+  useEffect(() => {
+    if (!gameState || !myRole || !pendingPremove) return;
+
+    const isBoard1_ = myRole === 'board1White' || myRole === 'board1Black';
+    const myBoard_: 1 | 2 = isBoard1_ ? 1 : 2;
+    const mySnapshot = myBoard_ === 1 ? gameState.board1 : gameState.board2;
+    const isNowMyTurn = getActiveRoleForBoard(mySnapshot.fen, myBoard_) === myRole;
+
+    const wasMyTurn = prevIsMyTurnRef.current;
+    prevIsMyTurnRef.current = isNowMyTurn;
+
+    if (!isNowMyTurn || wasMyTurn) return;
+
+    const action = pendingPremove;
+    setPendingPremove(null);
+
+    if (action.kind === 'move') {
+      try {
+        const chess = new Chess(mySnapshot.fen);
+        const legal = chess.moves({ square: action.from as Square, verbose: true });
+        if (legal.some((m) => m.to === action.to)) {
+          if (myBoard_ === 1) sendMove(action.from, action.to, action.promotion);
+          else sendMove2(action.from, action.to, action.promotion);
+          setOptimisticSnapshot(applyOptimisticMove(mySnapshot, action.from, action.to, action.promotion));
+        }
+      } catch { /* silent cancel */ }
+    } else if (action.kind === 'drop') {
+      const myColor_ = (myRole === 'board1White' || myRole === 'board2White') ? 'white' : 'black';
+      const bank = (gameState.bank as Record<BoardRole, PieceBank>)[myRole];
+      const bankCount = bank[action.pieceRole as keyof PieceBank] ?? 0;
+      if (bankCount === 0) return;
+      try {
+        const chess = new Chess(mySnapshot.fen);
+        if (!chess.get(action.to as Square)) {
+          sendDrop(myBoard_ === 1 ? '1' : '2', action.pieceRole, action.to);
+          setOptimisticSnapshot(applyOptimisticDrop(mySnapshot, action.pieceRole, action.to, myColor_));
+        }
+      } catch { /* silent cancel */ }
+    }
+  }, [gameState, myRole]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Cancel premove when game ends
+  useEffect(() => {
+    if (gameResult) setPendingPremove(null);
+  }, [gameResult]);
 
   // Track unread chat
   useEffect(() => {
@@ -237,10 +286,21 @@ export default function GameLayout({ gameId }: Props) {
               onDrop={handleDrop}
               onClearDrop={() => setSelectedDropPiece(null)}
               boardWidth={mainBoardWidth}
+              pendingPremove={pendingPremove}
+              onQueuePremove={(action) => { setPendingPremove(action); setSelectedDropPiece(null); }}
+              onCancelPremove={() => setPendingPremove(null)}
             />
+            {pendingPremove && (
+              <button
+                onClick={() => setPendingPremove(null)}
+                className="text-xs text-orange-300 bg-orange-900/40 hover:bg-orange-900/60 rounded-lg px-3 py-1.5 self-start transition-colors"
+              >
+                Premove queued — tap to cancel
+              </button>
+            )}
             <div className="flex items-center gap-2">
               <ChessClock ms={myClock} isActive={isMyTurn && !gameResult} label={me?.displayName ?? 'You'} />
-              <PieceBankBar bank={myBank} color={myColor} selectedPiece={selectedDropPiece} onSelectPiece={setSelectedDropPiece} disabled={!isMyTurn || !!gameResult} />
+              <PieceBankBar bank={myBank} color={myColor} selectedPiece={selectedDropPiece} onSelectPiece={setSelectedDropPiece} disabled={!!gameResult} />
             </div>
           </div>
 
@@ -263,7 +323,7 @@ export default function GameLayout({ gameId }: Props) {
               />
               <PieceBankBar bank={partnerBank} color={partnerColor} selectedPiece={null} onSelectPiece={() => {}} disabled />
             </div>
-            <Scoreboard players={gameState.players} scores={gameState.scores} myUserId={userId} />
+            <Scoreboard players={gameState.players} scores={gameState.scores} playerScores={gameState.playerScores ?? {}} myUserId={userId} />
           </div>
 
         </div>
