@@ -222,92 +222,47 @@ export default function GameLayout({ gameId }: Props) {
         <div className={`flex-1 flex flex-col md:flex-row md:items-start md:justify-center gap-4 md:gap-8 p-4 ${showChat && !isMobile ? 'mr-80' : ''}`}>
 
           {/* Left column: my board */}
-          <div className="flex items-stretch gap-2">
-            {/* Clocks span full height (bank + board + bank) */}
-            <div className="flex flex-col justify-between">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
               <ChessClock ms={opponentClock} isActive={!isMyTurn && !gameResult} label={opponent?.displayName ?? 'Opponent'} />
-              <ChessClock ms={myClock} isActive={isMyTurn && !gameResult} label={me?.displayName ?? 'You'} />
+              <PieceBankBar bank={opponentBank} color={roleColor(opponentRole_)} selectedPiece={null} onSelectPiece={() => {}} disabled />
             </div>
-
-            {/* Board with banks pinned above/below it */}
-            <div className="flex flex-col">
-              <div className="h-12 flex items-center">
-                <PieceBankBar
-                  bank={opponentBank}
-                  color={roleColor(opponentRole_)}
-                  selectedPiece={null}
-                  onSelectPiece={() => {}}
-                  disabled
-                />
-              </div>
-              <InteractiveBoard
-                snapshot={optimisticSnapshot ?? myBoardSnapshot}
-                orientation={orientation}
-                myColor={myColor}
-                isMyTurn={isMyTurn && !gameResult}
-                selectedDropPiece={selectedDropPiece}
-                onMove={handleMove}
-                onDrop={handleDrop}
-                onClearDrop={() => setSelectedDropPiece(null)}
-                boardWidth={mainBoardWidth}
-              />
-              <div className="h-12 flex items-center">
-                <PieceBankBar
-                  bank={myBank}
-                  color={myColor}
-                  selectedPiece={selectedDropPiece}
-                  onSelectPiece={setSelectedDropPiece}
-                  disabled={!isMyTurn || !!gameResult}
-                />
-              </div>
+            <InteractiveBoard
+              snapshot={optimisticSnapshot ?? myBoardSnapshot}
+              orientation={orientation}
+              myColor={myColor}
+              isMyTurn={isMyTurn && !gameResult}
+              selectedDropPiece={selectedDropPiece}
+              onMove={handleMove}
+              onDrop={handleDrop}
+              onClearDrop={() => setSelectedDropPiece(null)}
+              boardWidth={mainBoardWidth}
+            />
+            <div className="flex items-center gap-2">
+              <ChessClock ms={myClock} isActive={isMyTurn && !gameResult} label={me?.displayName ?? 'You'} />
+              <PieceBankBar bank={myBank} color={myColor} selectedPiece={selectedDropPiece} onSelectPiece={setSelectedDropPiece} disabled={!isMyTurn || !!gameResult} />
             </div>
           </div>
 
           {/* Right column: partner board */}
           <div className="flex flex-col gap-2 border-t border-gray-800 pt-4 md:border-0 md:pt-0">
-            <div className="flex items-stretch gap-2">
-              {/* Board with banks pinned above/below it */}
-              <div className="flex flex-col">
-                <div className="h-12 flex items-center">
-                  <PieceBankBar
-                    bank={opponentPartnerBank}
-                    color={roleColor(opponentPartnerRole_)}
-                    selectedPiece={null}
-                    onSelectPiece={() => {}}
-                    disabled
-                  />
-                </div>
-                <ReadOnlyBoard
-                  snapshot={partnerBoardSnapshot}
-                  orientation={partnerColor}
-                  boardWidth={partnerBoardWidth}
-                />
-                <div className="h-12 flex items-center">
-                  <PieceBankBar
-                    bank={partnerBank}
-                    color={partnerColor}
-                    selectedPiece={null}
-                    onSelectPiece={() => {}}
-                    disabled
-                  />
-                </div>
-              </div>
-
-              {/* Clocks span full height (bank + board + bank) */}
-              <div className="flex flex-col justify-between">
-                <ChessClock
-                  ms={opponentPartnerClock}
-                  isActive={getActiveRoleForBoard(partnerBoardSnapshot.fen, partnerBoardNum) !== partnerRole_ && !gameResult}
-                  label={oppPartner?.displayName ?? 'Opp. Partner'}
-                />
-                <ChessClock
-                  ms={partnerClock}
-                  isActive={getActiveRoleForBoard(partnerBoardSnapshot.fen, partnerBoardNum) === partnerRole_ && !gameResult}
-                  label={partner?.displayName ?? 'Partner'}
-                />
-              </div>
+            <div className="flex items-center gap-2">
+              <ChessClock
+                ms={opponentPartnerClock}
+                isActive={getActiveRoleForBoard(partnerBoardSnapshot.fen, partnerBoardNum) !== partnerRole_ && !gameResult}
+                label={oppPartner?.displayName ?? 'Opp. Partner'}
+              />
+              <PieceBankBar bank={opponentPartnerBank} color={roleColor(opponentPartnerRole_)} selectedPiece={null} onSelectPiece={() => {}} disabled />
             </div>
-
+            <ReadOnlyBoard snapshot={partnerBoardSnapshot} orientation={partnerColor} boardWidth={partnerBoardWidth} />
+            <div className="flex items-center gap-2">
+              <ChessClock
+                ms={partnerClock}
+                isActive={getActiveRoleForBoard(partnerBoardSnapshot.fen, partnerBoardNum) === partnerRole_ && !gameResult}
+                label={partner?.displayName ?? 'Partner'}
+              />
+              <PieceBankBar bank={partnerBank} color={partnerColor} selectedPiece={null} onSelectPiece={() => {}} disabled />
+            </div>
             <Scoreboard players={gameState.players} scores={gameState.scores} myUserId={userId} />
           </div>
 

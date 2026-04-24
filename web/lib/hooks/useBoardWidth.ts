@@ -26,8 +26,8 @@ export function useBoardWidth() {
     : Math.min(Math.floor((windowWidth - 80) / 2), 420);
 
   const mainBoardWidth = boardWidth;
-  // Partner board is always smaller than the main board
-  const partnerBoardWidth = Math.round(boardWidth * 0.7);
+  // Mobile: partner board stacks below at same width; desktop: partner is 70% of main
+  const partnerBoardWidth = isMobile ? boardWidth : Math.round(boardWidth * 0.7);
 
   return { mainBoardWidth, partnerBoardWidth, isMobile };
 }
