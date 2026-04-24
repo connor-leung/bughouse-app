@@ -32,6 +32,7 @@ type Session struct {
 
 	Ended        bool
 	Scores       [2]int
+	PlayerScores map[string]int // userID → cumulative wins across rematches
 	rematchVotes map[string]bool
 	rematchMu    sync.Mutex
 
@@ -57,6 +58,7 @@ func NewSession(id string, slots [4]*lobby.PlayerSlot, tc lobby.TimeControl) *Se
 		game:         engine.NewBughouseGame(),
 		tc:           tc,
 		rematchVotes: make(map[string]bool),
+		PlayerScores: make(map[string]int),
 	}
 
 	for i, slot := range slots {
@@ -79,21 +81,43 @@ func NewSession(id string, slots [4]*lobby.PlayerSlot, tc lobby.TimeControl) *Se
 	return s
 }
 
-// NewRematchSession creates a new session with the same players and carries over scores.
+// NewRematchSession creates a new session with the same players, carries over
+// scores, and swaps teams so colours alternate each game.
+// The Players array is ordered [board1White, board1Black, board2White, board2Black].
+// Swapping teams means flipping colours on each board:
+//
+//	old board1White → new board1Black (slot 1)
+//	old board1Black → new board1White (slot 0)
+//	old board2White → new board2Black (slot 3)
+//	old board2Black → new board2White (slot 2)
+//
+// Because team composition inverts, the carried-over scores are also swapped.
 func (s *Session) NewRematchSession() *Session {
 	newID := newSessionID()
+
+	// swapMap[newSlot] = oldSlot
+	swapMap := [4]int{1, 0, 3, 2}
+	newRoles := [4]lobby.BoardRole{lobby.Board1White, lobby.Board1Black, lobby.Board2White, lobby.Board2Black}
+
 	slots := [4]*lobby.PlayerSlot{}
-	for i, p := range s.Players {
+	for newIdx, oldIdx := range swapMap {
+		p := s.Players[oldIdx]
 		if p != nil {
-			slots[i] = &lobby.PlayerSlot{
+			slots[newIdx] = &lobby.PlayerSlot{
 				UserID:      p.UserID,
 				DisplayName: p.DisplayName,
-				Role:        p.Role,
+				Role:        newRoles[newIdx],
 			}
 		}
 	}
+
 	next := NewSession(newID, slots, s.tc)
-	next.Scores = s.Scores
+	// Swap team scores because team 1 and team 2 have exchanged identities.
+	next.Scores = [2]int{s.Scores[1], s.Scores[0]}
+	// Per-player scores are user-keyed so they carry over unchanged.
+	for id, wins := range s.PlayerScores {
+		next.PlayerScores[id] = wins
+	}
 	return next
 }
 
@@ -187,6 +211,11 @@ func (s *Session) end(winTeam int, reason EndReason) {
 		s.Ended = true
 		s.clocks.Stop()
 		s.Scores[winTeam-1]++
+		for _, p := range s.Players {
+			if p != nil && p.Role.Team() == winTeam {
+				s.PlayerScores[p.UserID]++
+			}
+		}
 		if s.OnEnd != nil {
 			s.OnEnd(s, winTeam, reason)
 		}
@@ -244,7 +273,8 @@ func (s *Session) Snapshot() map[string]any {
 			s.clocks.Remaining(2),
 			s.clocks.Remaining(3),
 		},
-		"scores": []int{s.Scores[0], s.Scores[1]},
+		"scores":       []int{s.Scores[0], s.Scores[1]},
+		"playerScores": s.PlayerScores,
 	}
 }
 

@@ -156,6 +156,8 @@ func (h *gameHub) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			"reason":      reason,
 			"scores":      []int{s.Scores[0], s.Scores[1]},
 		})
+		// Push updated snapshot so clients get the final scores immediately.
+		h.broadcastToSession(s, "game:update", s.Snapshot())
 		// Session is cleaned up by cleanupIfEmpty when the last player disconnects.
 	}
 
@@ -213,6 +215,14 @@ func (h *gameHub) handleMessage(c *Client, sess *game.Session, env Envelope) {
 			h.manager.Add(newSess)
 			log.Printf("[rematch] new session added to manager")
 
+			// Build a userID → new role map from the rematch session.
+			newRoleFor := make(map[string]string, 4)
+			for _, np := range newSess.Players {
+				if np != nil {
+					newRoleFor[np.UserID] = string(np.Role)
+				}
+			}
+
 			// Notify each connected player of their role in the new game.
 			h.mu.RLock()
 			for _, p := range sess.Players {
@@ -222,7 +232,7 @@ func (h *gameHub) handleMessage(c *Client, sess *game.Session, env Envelope) {
 				if client, ok := h.clients[p.UserID]; ok {
 					client.Send("game:starting", map[string]any{
 						"gameId": newSess.ID,
-						"role":   string(p.Role),
+						"role":   newRoleFor[p.UserID],
 					})
 				}
 			}
@@ -255,6 +265,7 @@ func (h *gameHub) wireSession(s *game.Session) {
 			"reason":      reason,
 			"scores":      []int{sess.Scores[0], sess.Scores[1]},
 		})
+		h.broadcastToSession(sess, "game:update", sess.Snapshot())
 	}
 }
 
