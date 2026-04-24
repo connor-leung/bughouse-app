@@ -19,6 +19,7 @@ export default function PieceBankBar({ bank, color, selectedPiece, onSelectPiece
   const available = PIECE_ROLES.filter((r) => (bank[r] ?? 0) > 0);
 
   if (available.length === 0) {
+    if (disabled) return null;
     return (
       <div className="flex items-center gap-2 h-10 px-3 text-gray-600 text-sm">
         No pieces in reserve

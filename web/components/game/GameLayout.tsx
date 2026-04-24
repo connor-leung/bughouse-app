@@ -166,6 +166,8 @@ export default function GameLayout({ gameId }: Props) {
   const opponent = gameState.players.find((p) => p.role === opponentRole(myRole));
   const me = gameState.players.find((p) => p.role === myRole);
   const partner = gameState.players.find((p) => p.role === partnerRole_);
+  const oppPartner = gameState.players.find((p) => p.role === opponentPartnerRole_);
+  const opponentPartnerClock = clocks[clockIndex(opponentPartnerRole_)];
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col">
@@ -220,16 +222,16 @@ export default function GameLayout({ gameId }: Props) {
         <div className={`flex-1 flex flex-col md:flex-row md:items-start md:justify-center gap-4 md:gap-8 p-4 ${showChat && !isMobile ? 'mr-80' : ''}`}>
 
           {/* Left column: my board */}
-          <div className="flex flex-col items-center gap-2">
-            <ChessClock
-              ms={opponentClock}
-              isActive={!isMyTurn && !gameResult}
-              label={opponent?.displayName ?? 'Opponent'}
-            />
+          <div className="flex items-stretch gap-2">
+            {/* Clocks span full height (bank + board + bank) */}
+            <div className="flex flex-col justify-between">
+              <ChessClock ms={opponentClock} isActive={!isMyTurn && !gameResult} label={opponent?.displayName ?? 'Opponent'} />
+              <ChessClock ms={myClock} isActive={isMyTurn && !gameResult} label={me?.displayName ?? 'You'} />
+            </div>
 
-            <div className="flex flex-col items-center gap-2">
-              <div className="bg-gray-900 rounded-xl p-2 w-full">
-                <p className="text-xs text-gray-500 mb-1 px-1">Opponent&apos;s reserve</p>
+            {/* Board with banks pinned above/below it */}
+            <div className="flex flex-col">
+              <div className="h-12 flex items-center">
                 <PieceBankBar
                   bank={opponentBank}
                   color={roleColor(opponentRole_)}
@@ -238,18 +240,6 @@ export default function GameLayout({ gameId }: Props) {
                   disabled
                 />
               </div>
-
-              <div className="bg-gray-900 rounded-xl p-2">
-                <p className="text-xs text-gray-500 mb-1 px-1">Your reserve</p>
-                <PieceBankBar
-                  bank={myBank}
-                  color={myColor}
-                  selectedPiece={selectedDropPiece}
-                  onSelectPiece={setSelectedDropPiece}
-                  disabled={!isMyTurn || !!gameResult}
-                />
-              </div>
-
               <InteractiveBoard
                 snapshot={optimisticSnapshot ?? myBoardSnapshot}
                 orientation={orientation}
@@ -261,53 +251,59 @@ export default function GameLayout({ gameId }: Props) {
                 onClearDrop={() => setSelectedDropPiece(null)}
                 boardWidth={mainBoardWidth}
               />
-            </div>
-
-            <ChessClock
-              ms={myClock}
-              isActive={isMyTurn && !gameResult}
-              label={me?.displayName ?? 'You'}
-            />
-          </div>
-
-          {/* Right column: partner board + scoreboard */}
-          <div className="flex flex-col items-center gap-2 w-full mx-auto md:mx-0 border-t border-gray-800 pt-4 md:border-0 md:pt-0" style={{ maxWidth: partnerBoardWidth }}>
-            <div className="flex items-center justify-between w-full">
-              <p className="text-xs text-gray-500">Partner&apos;s board</p>
-              <ChessClock
-                ms={partnerClock}
-                isActive={
-                  getActiveRoleForBoard(partnerBoardSnapshot.fen, partnerBoardNum) === partnerRole_ && !gameResult
-                }
-                label={partner?.displayName ?? 'Partner'}
-              />
-            </div>
-
-            <ReadOnlyBoard
-              snapshot={partnerBoardSnapshot}
-              orientation={partnerColor}
-              boardWidth={partnerBoardWidth}
-            />
-
-            <div className="flex gap-2 w-full">
-              <div className="bg-gray-900 rounded-xl p-2 flex-1">
-                <p className="text-xs text-gray-500 mb-1 px-1">Partner&apos;s reserve</p>
+              <div className="h-12 flex items-center">
                 <PieceBankBar
-                  bank={partnerBank}
-                  color={partnerColor}
-                  selectedPiece={null}
-                  onSelectPiece={() => {}}
-                  disabled
+                  bank={myBank}
+                  color={myColor}
+                  selectedPiece={selectedDropPiece}
+                  onSelectPiece={setSelectedDropPiece}
+                  disabled={!isMyTurn || !!gameResult}
                 />
               </div>
-              <div className="bg-gray-900 rounded-xl p-2 flex-1">
-                <p className="text-xs text-gray-500 mb-1 px-1">Opp. partner&apos;s reserve</p>
-                <PieceBankBar
-                  bank={opponentPartnerBank}
-                  color={roleColor(opponentPartnerRole_)}
-                  selectedPiece={null}
-                  onSelectPiece={() => {}}
-                  disabled
+            </div>
+          </div>
+
+          {/* Right column: partner board */}
+          <div className="flex flex-col gap-2 border-t border-gray-800 pt-4 md:border-0 md:pt-0">
+            <div className="flex items-stretch gap-2">
+              {/* Board with banks pinned above/below it */}
+              <div className="flex flex-col">
+                <div className="h-12 flex items-center">
+                  <PieceBankBar
+                    bank={opponentPartnerBank}
+                    color={roleColor(opponentPartnerRole_)}
+                    selectedPiece={null}
+                    onSelectPiece={() => {}}
+                    disabled
+                  />
+                </div>
+                <ReadOnlyBoard
+                  snapshot={partnerBoardSnapshot}
+                  orientation={partnerColor}
+                  boardWidth={partnerBoardWidth}
+                />
+                <div className="h-12 flex items-center">
+                  <PieceBankBar
+                    bank={partnerBank}
+                    color={partnerColor}
+                    selectedPiece={null}
+                    onSelectPiece={() => {}}
+                    disabled
+                  />
+                </div>
+              </div>
+
+              {/* Clocks span full height (bank + board + bank) */}
+              <div className="flex flex-col justify-between">
+                <ChessClock
+                  ms={opponentPartnerClock}
+                  isActive={getActiveRoleForBoard(partnerBoardSnapshot.fen, partnerBoardNum) !== partnerRole_ && !gameResult}
+                  label={oppPartner?.displayName ?? 'Opp. Partner'}
+                />
+                <ChessClock
+                  ms={partnerClock}
+                  isActive={getActiveRoleForBoard(partnerBoardSnapshot.fen, partnerBoardNum) === partnerRole_ && !gameResult}
+                  label={partner?.displayName ?? 'Partner'}
                 />
               </div>
             </div>
