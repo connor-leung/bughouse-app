@@ -36,34 +36,52 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="bg-gray-900 rounded-2xl p-6 sm:p-8 w-full max-w-sm shadow-xl flex flex-col gap-4 mx-4 sm:mx-0">
-        <h1 className="text-2xl font-bold text-center">Bughouse Chess</h1>
-        <p className="text-gray-400 text-center text-sm">Playing as <span className="text-gray-200 font-medium">{displayName}</span></p>
+      <div className="flex flex-col items-center gap-4 w-full max-w-md px-6">
+        <h1 className="text-4xl font-bold text-center text-white">Bughouse Chess</h1>
+        <p className="text-gray-400 text-center mb-2">
+          Playing as <span className="text-blue-400 font-semibold">{displayName}</span>
+        </p>
 
         {error && <p className="text-red-400 text-sm text-center">{error}</p>}
 
         <button
           onClick={startTestGame}
           disabled={loading}
-          className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg py-3 font-semibold transition-colors"
+          className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-2xl py-4 font-bold text-lg transition-colors flex items-center justify-center gap-2"
         >
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M13 2L4.5 13.5H11L10 22L20.5 9.5H14L13 2Z" />
+          </svg>
           {loading ? 'Starting...' : 'Quick Play vs Bots'}
         </button>
 
         <button
           onClick={() => router.push('/lobbies')}
-          className="bg-gray-700 hover:bg-gray-600 rounded-lg py-3 font-semibold transition-colors"
+          className="w-full bg-[#1e2130] hover:bg-[#252a3d] rounded-2xl py-4 font-bold text-lg transition-colors flex items-center justify-center gap-2"
         >
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
           Browse Lobbies
         </button>
 
         <button
           onClick={() => router.push('/name-entry')}
-          className="text-gray-400 hover:text-gray-200 text-sm text-center transition-colors"
+          className="text-gray-500 hover:text-gray-300 text-sm text-center transition-colors"
         >
           Change Display Name
         </button>
       </div>
+
+      <button
+        onClick={() => {}}
+        className="fixed bottom-6 right-6 w-10 h-10 rounded-full bg-[#1e2130] hover:bg-[#252a3d] text-gray-400 hover:text-white flex items-center justify-center text-lg font-bold transition-colors"
+      >
+        ?
+      </button>
     </div>
   );
 }
