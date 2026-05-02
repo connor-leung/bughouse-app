@@ -109,12 +109,29 @@ export default function GameLayout({ gameId }: Props) {
     const wasMyTurn = prevIsMyTurnRef.current;
     prevIsMyTurnRef.current = isNowMyTurn;
 
-    if (!isNowMyTurn || wasMyTurn) return;
+    if (!isNowMyTurn) return;
 
     const action = pendingPremove;
-    setPendingPremove(null);
 
-    if (action.kind === 'move') {
+    // Regular move premoves only fire on turn transition
+    if (action.kind === 'move' && wasMyTurn) return;
+
+    if (action.kind === 'drop') {
+      const myColor_ = (myRole === 'board1White' || myRole === 'board2White') ? 'white' : 'black';
+      const bank = (gameState.bank as Record<BoardRole, PieceBank>)[myRole];
+      const bankCount = bank[action.pieceRole as keyof PieceBank] ?? 0;
+      // Piece not available yet — keep premove pending until partner sends it
+      if (bankCount === 0) return;
+      setPendingPremove(null);
+      try {
+        const chess = new Chess(mySnapshot.fen);
+        if (!chess.get(action.to as Square)) {
+          sendDrop(myBoard_ === 1 ? '1' : '2', action.pieceRole, action.to);
+          setOptimisticSnapshot(applyOptimisticDrop(mySnapshot, action.pieceRole, action.to, myColor_));
+        }
+      } catch { /* silent cancel */ }
+    } else if (action.kind === 'move') {
+      setPendingPremove(null);
       try {
         const chess = new Chess(mySnapshot.fen);
         const legal = chess.moves({ square: action.from as Square, verbose: true });
@@ -122,18 +139,6 @@ export default function GameLayout({ gameId }: Props) {
           if (myBoard_ === 1) sendMove(action.from, action.to, action.promotion);
           else sendMove2(action.from, action.to, action.promotion);
           setOptimisticSnapshot(applyOptimisticMove(mySnapshot, action.from, action.to, action.promotion));
-        }
-      } catch { /* silent cancel */ }
-    } else if (action.kind === 'drop') {
-      const myColor_ = (myRole === 'board1White' || myRole === 'board2White') ? 'white' : 'black';
-      const bank = (gameState.bank as Record<BoardRole, PieceBank>)[myRole];
-      const bankCount = bank[action.pieceRole as keyof PieceBank] ?? 0;
-      if (bankCount === 0) return;
-      try {
-        const chess = new Chess(mySnapshot.fen);
-        if (!chess.get(action.to as Square)) {
-          sendDrop(myBoard_ === 1 ? '1' : '2', action.pieceRole, action.to);
-          setOptimisticSnapshot(applyOptimisticDrop(mySnapshot, action.pieceRole, action.to, myColor_));
         }
       } catch { /* silent cancel */ }
     }
