@@ -35,11 +35,11 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="flex flex-col items-center gap-4 w-full max-w-md px-6">
-        <h1 className="text-4xl font-bold text-center text-white">Bughouse Chess</h1>
-        <p className="text-gray-400 text-center mb-2">
-          Playing as <span className="text-blue-400 font-semibold">{displayName}</span>
+    <div className="min-h-screen flex items-center justify-center bg-base">
+      <div className="flex flex-col items-center gap-3 w-full max-w-xs px-6">
+        <h1 className="text-3xl font-bold text-center text-primary tracking-tight">Bughouse Chess</h1>
+        <p className="text-secondary text-center mb-2 text-sm">
+          Playing as <span className="text-accent-bright font-semibold">{displayName}</span>
         </p>
 
         {error && <p className="text-red-400 text-sm text-center">{error}</p>}
@@ -47,7 +47,7 @@ export default function HomePage() {
         <button
           onClick={startTestGame}
           disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-2xl py-4 font-bold text-lg transition-colors flex items-center justify-center gap-2"
+          className="w-full bg-accent hover:bg-accent-bright disabled:opacity-50 rounded-xl py-4 font-bold text-base transition-colors flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(45,111,240,0.3)]"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
             <path d="M13 2L4.5 13.5H11L10 22L20.5 9.5H14L13 2Z" />
@@ -57,7 +57,7 @@ export default function HomePage() {
 
         <button
           onClick={() => router.push('/lobbies')}
-          className="w-full bg-[#1e2130] hover:bg-[#252a3d] rounded-2xl py-4 font-bold text-lg transition-colors flex items-center justify-center gap-2"
+          className="w-full bg-elevated hover:bg-hover border border-white/7 hover:border-white/12 rounded-xl py-4 font-bold text-base transition-colors flex items-center justify-center gap-2"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -70,7 +70,7 @@ export default function HomePage() {
 
         <button
           onClick={() => router.push('/name-entry')}
-          className="text-gray-500 hover:text-gray-300 text-sm text-center transition-colors"
+          className="text-muted hover:text-secondary text-sm text-center transition-colors"
         >
           Change Display Name
         </button>
@@ -78,7 +78,7 @@ export default function HomePage() {
 
       <button
         onClick={() => {}}
-        className="fixed bottom-6 right-6 w-10 h-10 rounded-full bg-[#1e2130] hover:bg-[#252a3d] text-gray-400 hover:text-white flex items-center justify-center text-lg font-bold transition-colors"
+        className="fixed bottom-6 right-6 w-10 h-10 rounded-full bg-elevated hover:bg-hover border border-white/7 text-secondary hover:text-primary flex items-center justify-center text-lg font-bold transition-colors"
       >
         ?
       </button>

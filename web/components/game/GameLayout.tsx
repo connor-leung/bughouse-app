@@ -161,11 +161,11 @@ export default function GameLayout({ gameId }: Props) {
   if (!gameState || !myRole) {
     const isDeadEnd = error === 'game not found' || (!gameState && error === 'Connection error');
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500">
+      <div className="min-h-screen flex items-center justify-center text-muted bg-base">
         <div className="text-center">
           <p className="text-lg">{isDeadEnd ? 'Game not found' : isConnected ? 'Waiting for game state...' : 'Connecting...'}</p>
           {isDeadEnd
-            ? <p className="text-gray-500 text-sm mt-2">Redirecting to home...</p>
+            ? <p className="text-muted text-sm mt-2">Redirecting to home...</p>
             : error && <p className="text-red-400 text-sm mt-2">{error}</p>}
         </div>
       </div>
@@ -224,21 +224,21 @@ export default function GameLayout({ gameId }: Props) {
   const opponentPartnerClock = clocks[clockIndex(opponentPartnerRole_)];
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col">
+    <div className="min-h-screen bg-base flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 bg-gray-900 border-b border-gray-800">
-        <span className="text-sm text-gray-500 font-mono">{gameId.slice(0, 8)}</span>
+      <div className="flex items-center justify-between px-4 py-2 bg-base/95 backdrop-blur-xl border-b border-white/7">
+        <span className="text-xs text-muted font-['DM_Mono']">{gameId.slice(0, 8)}</span>
         <div className="flex items-center gap-2">
-          <span className={`text-xs px-2 py-0.5 rounded-full ${isConnected ? 'bg-green-900 text-green-300' : 'bg-gray-700 text-gray-400'}`}>
+          <span className={`text-xs px-2 py-0.5 rounded-full border ${isConnected ? 'bg-success/12 text-success border-success/25' : 'bg-elevated text-muted border-white/7'}`}>
             {isConnected ? 'Live' : '...'}
           </span>
           <button
             onClick={() => setShowChat((v) => !v)}
-            className="relative bg-gray-800 hover:bg-gray-700 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+            className="relative bg-elevated hover:bg-hover border border-white/7 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors text-secondary hover:text-primary"
           >
             Chat
             {unread > 0 && !showChat && (
-              <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 bg-accent text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
                 {unread > 9 ? '9+' : unread}
               </span>
             )}
@@ -246,7 +246,7 @@ export default function GameLayout({ gameId }: Props) {
           {!gameResult && (
             <button
               onClick={handleResign}
-              className="bg-red-900/60 hover:bg-red-800 rounded-lg px-3 py-1.5 text-sm text-red-300 font-medium transition-colors"
+              className="bg-danger/12 hover:bg-danger/20 border border-danger/25 rounded-lg px-3 py-1.5 text-sm text-danger font-medium transition-colors"
             >
               Resign
             </button>
@@ -266,7 +266,7 @@ export default function GameLayout({ gameId }: Props) {
       )}
 
       {error && (
-        <div className="bg-red-900/50 border-b border-red-800 px-4 py-2 text-red-300 text-sm text-center">
+        <div className="bg-danger/8 border-b border-danger/20 px-4 py-2 text-danger text-sm text-center">
           {error}
         </div>
       )}
@@ -298,7 +298,7 @@ export default function GameLayout({ gameId }: Props) {
             {pendingPremove && (
               <button
                 onClick={() => setPendingPremove(null)}
-                className="text-xs text-orange-300 bg-orange-900/40 hover:bg-orange-900/60 rounded-lg px-3 py-1.5 self-start transition-colors"
+                className="text-xs text-orange bg-orange/12 hover:bg-orange/20 border border-orange/25 rounded-lg px-3 py-1.5 self-start transition-colors"
               >
                 Premove queued — tap to cancel
               </button>
@@ -310,7 +310,7 @@ export default function GameLayout({ gameId }: Props) {
           </div>
 
           {/* Right column: partner board */}
-          <div className="flex flex-col gap-2 border-t border-gray-800 pt-4 md:border-0 md:pt-0">
+          <div className="flex flex-col gap-2 border-t border-white/7 pt-4 md:border-0 md:pt-0">
             <div className="flex items-center gap-2">
               <ChessClock
                 ms={opponentPartnerClock}

@@ -20,30 +20,30 @@ interface Props {
 
 export default function PlayerSlotTile({ role, slot, isMe, isReady, onJoin, hideRole }: Props) {
   return (
-    <div className={`flex items-center justify-between p-3 rounded-xl border ${isMe ? 'border-blue-600 bg-blue-900/20' : 'border-gray-800 bg-gray-900/50'}`}>
+    <div className={`flex items-center justify-between p-3 rounded-xl border ${isMe ? 'border-accent/40 bg-accent/8' : 'border-white/7 bg-surface'}`}>
       <div className="flex items-center gap-2 min-w-0">
-        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${slot ? (isReady ? 'bg-green-400' : 'bg-gray-600') : 'bg-gray-800'}`} />
+        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${slot ? (isReady ? 'bg-success' : 'bg-muted') : 'bg-elevated'}`} />
         <div className="min-w-0">
-          {!hideRole && <p className="text-xs text-gray-500 font-medium">{ROLE_LABELS[role]}</p>}
+          {!hideRole && <p className="text-xs text-muted font-medium">{ROLE_LABELS[role]}</p>}
           {slot ? (
-            <p className={`font-semibold mt-0.5 truncate ${isMe ? 'text-blue-300' : 'text-gray-200'}`}>
-              {slot.displayName} {isMe && <span className="text-xs text-blue-400">(you)</span>}
+            <p className={`font-semibold mt-0.5 truncate ${isMe ? 'text-accent-bright' : 'text-primary'}`}>
+              {slot.displayName} {isMe && <span className="text-xs text-accent-bright">(you)</span>}
             </p>
           ) : (
-            <p className="text-gray-600 mt-0.5">Empty</p>
+            <p className="text-muted mt-0.5">Empty</p>
           )}
         </div>
       </div>
       {!slot && (
         <button
           onClick={onJoin}
-          className="flex-shrink-0 bg-gray-700 hover:bg-gray-600 rounded-lg px-3 py-1 text-xs font-semibold transition-colors"
+          className="flex-shrink-0 bg-elevated hover:bg-hover border border-white/7 hover:border-white/12 rounded-lg px-3 py-1 text-xs font-medium transition-colors text-secondary"
         >
           Join
         </button>
       )}
       {slot && isReady && (
-        <span className="flex-shrink-0 text-xs text-green-400 font-semibold">Ready</span>
+        <span className="flex-shrink-0 text-xs text-success font-semibold">Ready</span>
       )}
     </div>
   );

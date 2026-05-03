@@ -1,1 +1,28 @@
 @import "tailwindcss";
+
+@theme {
+  /* Backgrounds */
+  --color-base:           #080e1a;
+  --color-surface:        #0f1829;
+  --color-elevated:       #151f33;
+  --color-hover:          #1c2840;
+
+  /* Foreground */
+  --color-primary:        #e8eef8;
+  --color-secondary:      #7a8fae;
+  --color-muted:          #4a5a73;
+
+  /* Accent (blue) */
+  --color-accent:         #2d6ff0;
+  --color-accent-bright:  #4a86f5;
+
+  /* Status */
+  --color-success:        #22c55e;
+  --color-danger:         #ef4444;
+  --color-warn:           #facc15;
+  --color-orange:         #fb923c;
+
+  /* Chess board */
+  --color-board-light:    #c5d3e8;
+  --color-board-dark:     #3e5a80;
+}

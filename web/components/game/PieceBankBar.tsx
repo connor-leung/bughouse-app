@@ -21,13 +21,13 @@ export default function PieceBankBar({ bank, color, selectedPiece, onSelectPiece
   if (available.length === 0) {
     if (disabled) return null;
     return (
-      <div className="flex items-center gap-2 h-10 px-3 text-gray-600 text-sm">
+      <div className="flex items-center gap-2 h-10 px-3 text-muted text-sm">
         No pieces in reserve
       </div>
     );
   }
 
-  const tileBg = color === 'white' ? 'bg-gray-700' : 'bg-gray-300';
+  const tileBg = color === 'white' ? 'bg-board-light' : 'bg-board-dark';
 
   return (
     <div className="flex items-center gap-2 flex-wrap px-2">
@@ -40,14 +40,14 @@ export default function PieceBankBar({ bank, color, selectedPiece, onSelectPiece
             disabled={disabled}
             onClick={() => onSelectPiece(isSelected ? null : role)}
             className={`relative flex items-center justify-center rounded-lg transition-colors
-              ${isSelected ? 'ring-2 ring-yellow-400 ring-offset-1 ring-offset-gray-900' : ''}
+              ${isSelected ? 'ring-2 ring-yellow-400 ring-offset-1 ring-offset-surface' : ''}
               ${disabled ? 'opacity-60 cursor-default' : 'hover:scale-110'}`}
           >
             <span className={`w-10 h-10 flex items-center justify-center rounded-lg ${isSelected ? 'bg-yellow-600' : tileBg}`}>
               {defaultPieces[(color === 'white' ? 'w' : 'b') + ROLE_LETTER[role]]?.({ svgStyle: { width: '36px', height: '36px' } })}
             </span>
             {count > 1 && (
-              <span className="absolute -bottom-1 -right-1 bg-blue-500 text-white text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center leading-none">
+              <span className="absolute -bottom-1 -right-1 bg-accent text-white text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center leading-none">
                 {count}
               </span>
             )}

@@ -201,9 +201,9 @@ export default function InteractiveBoard({
             setLegalTargets([]);
           },
           squareStyles,
-          boardStyle: { borderRadius: '8px', boxShadow: '0 4px 16px rgba(0,0,0,0.6)' },
-          darkSquareStyle: { backgroundColor: '#4a4a4a' },
-          lightSquareStyle: { backgroundColor: '#9e9e9e' },
+          boardStyle: { borderRadius: '4px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)' },
+          darkSquareStyle: { backgroundColor: '#3e5a80' },
+          lightSquareStyle: { backgroundColor: '#c5d3e8' },
         }}
       />
       {snapshot.isCheck && (
@@ -215,8 +215,8 @@ export default function InteractiveBoard({
       {/* Promotion picker */}
       {pendingPromo && (
         <div className="absolute inset-0 bg-black/80 flex items-center justify-center rounded-lg z-10">
-          <div className="bg-gray-900 rounded-xl p-4">
-            <p className="text-sm text-gray-400 mb-3 text-center">Promote to:</p>
+          <div className="bg-surface rounded-xl p-4">
+            <p className="text-sm text-secondary mb-3 text-center">Promote to:</p>
             <div className="flex gap-3">
               {PROMO_PIECES.map((piece) => (
                 <button
@@ -225,7 +225,7 @@ export default function InteractiveBoard({
                     onMove(pendingPromo.from, pendingPromo.to, PROMO_PIECE_MAP[piece]);
                     setPendingPromo(null);
                   }}
-                  className="bg-gray-800 hover:bg-gray-700 rounded-lg p-3 text-2xl transition-colors"
+                  className="bg-elevated hover:bg-hover rounded-lg p-3 text-2xl transition-colors"
                   title={piece}
                 >
                   {PROMO_UNICODE[piece]}

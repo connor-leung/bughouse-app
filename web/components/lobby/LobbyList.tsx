@@ -23,35 +23,35 @@ export default function LobbyList() {
   const waitingLobbies = lobbies.filter((l) => l.status === 'waiting');
 
   return (
-    <div className="min-h-screen p-4 sm:p-6 max-w-2xl mx-auto">
+    <div className="min-h-screen p-4 sm:p-6 max-w-2xl mx-auto bg-base">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <button onClick={() => router.push('/home')} className="text-gray-400 hover:text-gray-200">
+          <button onClick={() => router.push('/home')} className="text-muted hover:text-primary text-sm transition-colors">
             ← Back
           </button>
-          <h1 className="text-xl font-bold">Lobbies</h1>
-          <span className={`text-xs px-2 py-0.5 rounded-full ${isConnected ? 'bg-green-900 text-green-300' : 'bg-gray-700 text-gray-400'}`}>
+          <h1 className="text-lg font-semibold text-primary">Lobbies</h1>
+          <span className={`text-xs px-2 py-0.5 rounded-full border ${isConnected ? 'bg-success/12 text-success border-success/25' : 'bg-elevated text-muted border-white/7'}`}>
             {isConnected ? 'Live' : 'Connecting...'}
           </span>
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          className="bg-blue-600 hover:bg-blue-500 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors"
+          className="bg-accent hover:bg-accent-bright rounded-lg px-4 py-2 text-sm font-semibold transition-colors shadow-[0_2px_12px_rgba(45,111,240,0.25)]"
         >
           + Create
         </button>
       </div>
 
       {error && (
-        <div className="bg-red-900/50 border border-red-700 rounded-lg p-3 mb-4 text-red-300 text-sm">
+        <div className="bg-danger/8 border border-danger/25 rounded-lg p-3 mb-4 text-danger text-sm">
           {error}
         </div>
       )}
 
       {waitingLobbies.length === 0 ? (
-        <div className="text-center text-gray-500 py-16">
-          <p className="text-lg">No open lobbies</p>
-          <p className="text-sm mt-1">Create one to get started</p>
+        <div className="text-center text-muted py-16">
+          <p className="text-base">No open lobbies</p>
+          <p className="text-sm mt-1 text-muted">Create one to get started</p>
         </div>
       ) : (
         <div className="flex flex-col gap-3">

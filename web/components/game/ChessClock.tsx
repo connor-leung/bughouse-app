@@ -25,9 +25,9 @@ export default function ChessClock({ ms, isActive, label }: Props) {
 
   return (
     <div className={`flex flex-col items-center rounded-xl px-3 py-2 min-w-[80px] transition-colors
-      ${isDead ? 'bg-gray-800 text-gray-600' : isActive ? isLow ? 'bg-red-900 text-red-200' : 'bg-blue-900 text-blue-100' : 'bg-gray-800 text-gray-400'}`}>
-      {label && <span className="text-xs font-medium opacity-70 mb-0.5">{label}</span>}
-      <span className={`font-mono font-bold tabular-nums ${isLow ? 'text-2xl' : 'text-xl'}`}>
+      ${isDead ? 'bg-elevated border border-white/7 text-muted' : isActive ? isLow ? 'bg-danger text-white' : 'bg-accent text-white' : 'bg-elevated border border-white/7 text-secondary'}`}>
+      {label && <span className="text-xs font-medium opacity-70 mb-0.5 font-['DM_Sans']">{label}</span>}
+      <span className={`font-['DM_Mono'] font-bold tabular-nums ${isLow ? 'text-2xl' : 'text-xl'}`}>
         {formatMs(ms)}
       </span>
     </div>

@@ -30,9 +30,9 @@ export default function ReadOnlyBoard({ snapshot, orientation, boardWidth = 280 
           boardOrientation: orientation,
           allowDragging: false,
           squareStyles,
-          boardStyle: { borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.5)' },
-          darkSquareStyle: { backgroundColor: '#4a4a4a' },
-          lightSquareStyle: { backgroundColor: '#9e9e9e' },
+          boardStyle: { borderRadius: '4px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)' },
+          darkSquareStyle: { backgroundColor: '#3e5a80' },
+          lightSquareStyle: { backgroundColor: '#c5d3e8' },
         }}
       />
       {snapshot.isCheck && (

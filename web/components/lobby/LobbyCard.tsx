@@ -18,18 +18,18 @@ export default function LobbyCard({ lobby, onJoin, onView }: Props) {
   const tcLabel = incrementSeconds > 0 ? `${minutes}+${incrementSeconds}` : `${minutes}+0`;
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-center justify-between">
+    <div className="bg-surface border border-white/7 hover:bg-elevated hover:border-white/12 rounded-xl p-4 flex items-center justify-between transition-colors cursor-pointer">
       <div>
-        <p className="font-semibold text-gray-100">{lobby.name}</p>
-        <p className="text-sm text-gray-400 mt-0.5">
+        <p className="font-semibold text-primary text-sm">{lobby.name}</p>
+        <p className="text-xs text-secondary mt-1 font-['DM_Mono']">
           {tcLabel} &middot; {filled}/4
-          {lobby.randomTeams && <span className="ml-1 text-blue-400">&middot; Random</span>}
+          {lobby.randomTeams && <span className="ml-1 text-accent-bright">&middot; Random</span>}
         </p>
       </div>
       {alreadyIn ? (
         <button
           onClick={onView}
-          className="bg-gray-700 hover:bg-gray-600 rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors"
+          className="bg-elevated hover:bg-hover border border-white/7 rounded-lg px-4 py-1.5 text-sm font-medium transition-colors text-secondary"
         >
           View
         </button>
@@ -37,7 +37,7 @@ export default function LobbyCard({ lobby, onJoin, onView }: Props) {
         <button
           onClick={() => onJoin(firstEmpty)}
           disabled={firstEmpty === -1}
-          className="bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors"
+          className="bg-accent hover:bg-accent-bright disabled:opacity-40 disabled:cursor-not-allowed rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors"
         >
           Join
         </button>

@@ -22,7 +22,7 @@ export default function Scoreboard({ players, scores, playerScores, myUserId }: 
   const rows = [...team1, ...team2];
 
   return (
-    <div className="bg-gray-900 rounded-xl p-3 w-full">
+    <div className="bg-surface border border-white/7 rounded-xl p-3 w-full">
       <div className="flex flex-col gap-1">
         {rows.map((p, i) => {
           const wins = playerScores[p.userId] ?? 0;
@@ -31,12 +31,12 @@ export default function Scoreboard({ players, scores, playerScores, myUserId }: 
           const showDivider = i === team1.length && team2.length > 0;
           return (
             <div key={p.userId}>
-              {showDivider && <div className="border-t border-gray-800 my-1" />}
+              {showDivider && <div className="border-t border-white/7 my-1" />}
               <div className="flex items-center justify-between gap-2">
-                <span className={`text-xs truncate flex-1 ${isMe ? 'text-blue-300 font-semibold' : 'text-gray-300'}`}>
+                <span className={`text-xs truncate flex-1 ${isMe ? 'text-accent-bright font-semibold' : 'text-primary'}`}>
                   {p.displayName}
                 </span>
-                <span className={`font-mono text-xs tabular-nums whitespace-nowrap ${isLeading ? 'text-white font-bold' : 'text-gray-500'}`}>
+                <span className={`font-mono text-xs tabular-nums whitespace-nowrap ${isLeading ? 'text-success font-bold' : 'text-muted'}`}>
                   {wins}/{total}
                 </span>
               </div>

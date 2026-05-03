@@ -30,7 +30,7 @@ function TeamSection({
 }) {
   return (
     <div>
-      <p className="text-xs text-gray-500 font-semibold uppercase tracking-widest mb-2">{title}</p>
+      <p className="text-xs text-muted font-semibold uppercase tracking-widest mb-2">{title}</p>
       <div className="flex flex-col gap-2">
         {roles.map((role) => {
           const slotIndex = ROLE_ORDER.indexOf(role);
@@ -97,8 +97,8 @@ export default function LobbyRoom({ lobbyId }: Props) {
 
   if (!lobby) {
     return (
-      <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md shadow-2xl">
-        <p className="text-gray-500 text-center">Loading lobby...</p>
+      <div className="bg-surface border border-white/12 rounded-2xl p-6 w-full max-w-md shadow-[0_24px_64px_rgba(0,0,0,0.5)]">
+        <p className="text-muted text-center">Loading lobby...</p>
       </div>
     );
   }
@@ -115,23 +115,23 @@ export default function LobbyRoom({ lobbyId }: Props) {
   const isStarting = lobby.status === 'starting';
 
   return (
-    <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+    <div className="bg-surface border border-white/12 rounded-2xl p-6 w-full max-w-md shadow-[0_24px_64px_rgba(0,0,0,0.5)]">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={handleLeave} className="text-gray-400 hover:text-gray-200 transition-colors">
+        <button onClick={handleLeave} className="text-muted hover:text-primary transition-colors text-lg">
           ←
         </button>
         <div>
-          <h1 className="text-xl font-bold">{lobby.name}</h1>
-          <p className="text-sm text-gray-400">
+          <h1 className="text-lg font-bold text-primary">{lobby.name}</h1>
+          <p className="text-xs text-secondary font-['DM_Mono']">
             {tcLabel} &middot; {filled}/4 players
-            {randomTeams && <span className="ml-1 text-blue-400">&middot; Random teams</span>}
+            {randomTeams && <span className="ml-1 text-accent-bright">&middot; Random teams</span>}
           </p>
         </div>
       </div>
 
       {error && (
-        <div className="bg-red-900/50 border border-red-700 rounded-lg p-3 mb-4 text-red-300 text-sm">
+        <div className="bg-danger/8 border border-danger/25 rounded-lg p-3 mb-4 text-danger text-sm">
           {error}
         </div>
       )}
@@ -140,7 +140,7 @@ export default function LobbyRoom({ lobbyId }: Props) {
       <div className="flex flex-col gap-6 mb-6">
         {randomTeams ? (
           <div>
-            <p className="text-xs text-gray-500 font-semibold uppercase tracking-widest mb-2">Players</p>
+            <p className="text-xs text-muted font-semibold uppercase tracking-widest mb-2">Players</p>
             <div className="flex flex-col gap-2">
               {ROLE_ORDER.map((role, i) => {
                 const slot = lobby.slots[i] ?? null;
@@ -170,8 +170,8 @@ export default function LobbyRoom({ lobbyId }: Props) {
       {/* Ready / countdown area */}
       {isStarting ? (
         <div className="text-center py-4">
-          <p className="text-5xl font-black text-green-400 mb-1">{countdown}</p>
-          <p className="text-gray-400 text-sm">All players ready — starting…</p>
+          <p className="text-5xl font-black text-success mb-1">{countdown}</p>
+          <p className="text-secondary text-sm">All players ready — starting…</p>
         </div>
       ) : imInLobby ? (
         <div className="flex flex-col gap-3">
@@ -179,18 +179,18 @@ export default function LobbyRoom({ lobbyId }: Props) {
             onClick={handleReady}
             className={`w-full rounded-xl py-3 font-bold text-base transition-colors ${
               imReady
-                ? 'bg-green-800/60 hover:bg-red-900/60 text-green-300 hover:text-red-300 border border-green-700 hover:border-red-700'
-                : 'bg-green-700 hover:bg-green-600 text-white'
+                ? 'bg-success/12 hover:bg-danger/12 text-success hover:text-danger border border-success/30 hover:border-danger/30'
+                : 'bg-success hover:bg-[#16a34a] text-white shadow-[0_4px_16px_rgba(34,197,94,0.25)]'
             }`}
           >
             {imReady ? 'Unready' : 'Ready'}
           </button>
-          <p className="text-center text-gray-500 text-xs">
+          <p className="text-center text-muted text-xs">
             {readyCount}/4 ready
           </p>
         </div>
       ) : (
-        <p className="text-center text-gray-500 text-sm">
+        <p className="text-center text-muted text-sm">
           Join a slot to ready up
         </p>
       )}
