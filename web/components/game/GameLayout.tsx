@@ -99,7 +99,7 @@ export default function GameLayout({ gameId }: Props) {
 
   // Fire queued premove when it becomes our turn
   useEffect(() => {
-    if (!gameState || !myRole || !pendingPremove) return;
+    if (!gameState || !myRole) return;
 
     const isBoard1_ = myRole === 'board1White' || myRole === 'board1Black';
     const myBoard_: 1 | 2 = isBoard1_ ? 1 : 2;
@@ -109,6 +109,7 @@ export default function GameLayout({ gameId }: Props) {
     const wasMyTurn = prevIsMyTurnRef.current;
     prevIsMyTurnRef.current = isNowMyTurn;
 
+    if (!pendingPremove) return;
     if (!isNowMyTurn) return;
 
     const action = pendingPremove;
