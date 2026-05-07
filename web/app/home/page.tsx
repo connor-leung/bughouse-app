@@ -57,7 +57,7 @@ export default function HomePage() {
 
         <button
           onClick={() => router.push('/lobbies')}
-          className="w-full bg-elevated hover:bg-hover border border-white/7 hover:border-white/12 rounded-xl py-4 font-bold text-base transition-colors flex items-center justify-center gap-2"
+          className="w-full bg-elevated hover:bg-hover border border-white/7 hover:border-white/12 rounded-xl py-4 font-bold text-base transition-colors flex items-center justify-center gap-2 text-white"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -77,8 +77,9 @@ export default function HomePage() {
       </div>
 
       <button
-        onClick={() => {}}
+        onClick={() => router.push('/how-to-play')}
         className="fixed bottom-6 right-6 w-10 h-10 rounded-full bg-elevated hover:bg-hover border border-white/7 text-secondary hover:text-primary flex items-center justify-center text-lg font-bold transition-colors"
+        aria-label="How to play"
       >
         ?
       </button>
