@@ -9,8 +9,7 @@ The project is a monorepo with three applications:
 ```
 bughouse-app/
 ├── web/       # Next.js frontend
-├── server/    # Go WebSocket backend
-└── mobile/    # Flutter mobile app
+└── server/    # Go WebSocket backend
 ```
 
 **Communication:** Clients request HMAC-signed WebSocket tickets from the web server, then connect to the Go backend. Tickets are valid for 60 seconds.
@@ -22,7 +21,6 @@ bughouse-app/
 | Web frontend | Next.js 16, TypeScript, Tailwind CSS 4, Zustand |
 | Chess UI | react-chessboard, chess.js |
 | Backend | Go 1.23, gorilla/websocket |
-| Mobile | Flutter/Dart 3.7, Riverpod, go_router |
 | Web deploy | Vercel |
 | Server deploy | Fly.io (Toronto region) |
 
@@ -32,7 +30,6 @@ bughouse-app/
 
 - Node.js (web)
 - Go 1.23+ (server)
-- Flutter SDK (mobile)
 
 ### Server
 
@@ -56,14 +53,6 @@ Create `web/.env.local`:
 ```
 NEXT_PUBLIC_SERVER_URL=http://localhost:3001
 WS_SECRET=<shared with server>
-```
-
-### Mobile
-
-```bash
-cd mobile
-flutter pub get
-flutter run
 ```
 
 ## Features
