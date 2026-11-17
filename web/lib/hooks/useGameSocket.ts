@@ -55,7 +55,6 @@ export function useGameSocket(gameId: string, userId: string) {
     let active = true;
     if (!gameId || !userId) return;
 
-    console.log('[game] resetGame for', gameId);
     gs.getState().resetGame();
 
     // Restore one-time events (game:ended, rematch votes) that won't be
@@ -69,13 +68,11 @@ export function useGameSocket(gameId: string, userId: string) {
       const ticket = await fetchWsTicket();
       if (!active) return;
       const url = `${wsUrl()}/game/${gameId}?userId=${encodeURIComponent(userId)}${ticket ? `&ticket=${encodeURIComponent(ticket)}` : ''}`;
-      console.log('[game] creating WebSocket to', url);
       const ws = new WebSocket(url);
       wsRef.current = ws;
 
       ws.onopen = () => {
         if (!active) return;
-        console.log('[game] ws connected to', gameId);
         gs.getState().setConnected(true);
         gs.getState().setError(null);
       };
@@ -83,13 +80,11 @@ export function useGameSocket(gameId: string, userId: string) {
       ws.onmessage = (e) => {
         if (!active) return;
         const msg: WsEnvelope = JSON.parse(e.data);
-        console.log('[game] received', msg.type);
         switch (msg.type) {
           case 'game:state':
           case 'game:update': {
             const state = msg.data as GameState;
             if (state.gameId !== gameId) {
-              console.log('[game] ignoring', msg.type, 'for', state.gameId, '(expected', gameId + ')');
               break;
             }
             gs.getState().setPendingRematch(null);
@@ -117,7 +112,6 @@ export function useGameSocket(gameId: string, userId: string) {
           }
           case 'game:starting': {
             const data = msg.data as { gameId: string; role: BoardRole };
-            console.log('[game] received game:starting', data.gameId);
             gs.getState().setPendingRematch(data);
             break;
           }
@@ -127,7 +121,6 @@ export function useGameSocket(gameId: string, userId: string) {
           }
           case 'error': {
             const data = msg.data as { message: string };
-            console.log('[game] received error:', data.message);
             gs.getState().setError(data.message ?? String(msg.data));
             break;
           }
@@ -136,12 +129,10 @@ export function useGameSocket(gameId: string, userId: string) {
 
       ws.onerror = () => {
         if (!active) return;
-        console.log('[game] ws error');
         gs.getState().setError('Connection error');
       };
-      ws.onclose = (e) => {
+      ws.onclose = () => {
         if (!active) return;
-        console.log('[game] ws closed', e.code, e.reason);
         gs.getState().setConnected(false);
       };
     })();
