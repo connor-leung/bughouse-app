@@ -1,0 +1,9 @@
+<svg viewBox="0 0 64 64" width="256" height="256" xmlns="http://www.w3.org/2000/svg">
+  <rect width="64" height="64" rx="14" fill="#0f1829"/>
+  <rect x="10" y="10" width="20" height="20" rx="3" fill="#2d6ff0"/>
+  <rect x="34" y="10" width="20" height="20" rx="3" fill="#3e5a80"/>
+  <rect x="10" y="34" width="20" height="20" rx="3" fill="#3e5a80"/>
+  <rect x="34" y="34" width="20" height="20" rx="3" fill="#2d6ff0"/>
+  <!-- center knight glyph -->
+  <text x="32" y="40" font-family="serif" font-size="22" text-anchor="middle" fill="#fff" font-weight="700">♞</text>
+</svg>
