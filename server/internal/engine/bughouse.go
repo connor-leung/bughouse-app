@@ -14,10 +14,11 @@ const (
 // It owns both boards and all four piece banks.
 //
 // Bank routing:
-//   Board1 White captures → Board2 White's bank
-//   Board1 Black captures → Board2 Black's bank
-//   Board2 White captures → Board1 White's bank
-//   Board2 Black captures → Board1 Black's bank
+//
+//	Board1 White captures → Board2 White's bank
+//	Board1 Black captures → Board2 Black's bank
+//	Board2 White captures → Board1 White's bank
+//	Board2 Black captures → Board1 Black's bank
 type BughouseGame struct {
 	Boards [2]*Board
 	// Banks[boardIdx][colorIdx] is the bank for that color on that board.

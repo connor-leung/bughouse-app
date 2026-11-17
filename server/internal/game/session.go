@@ -51,7 +51,7 @@ type Player struct {
 
 // NewSession creates a game session from a filled lobby.
 func NewSession(id string, slots [4]*lobby.PlayerSlot, tc lobby.TimeControl) *Session {
-	durationMs := int64(tc.Minutes)*60*1000
+	durationMs := int64(tc.Minutes) * 60 * 1000
 
 	s := &Session{
 		ID:           id,

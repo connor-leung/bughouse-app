@@ -9,14 +9,14 @@ import (
 // Player indices match the Session.Players array (0=board1white, 1=board1black,
 // 2=board2white, 3=board2black).
 type ClockManager struct {
-	mu            sync.Mutex
-	remaining     [4]int64 // milliseconds remaining
-	increment     int64    // milliseconds added after each move
-	activeBoard   [2]int   // which player index is active on each board
-	lastTick      [2]time.Time
-	ticker        *time.Ticker
-	stopCh        chan struct{}
-	onTimeout     func(playerIdx int)
+	mu          sync.Mutex
+	remaining   [4]int64 // milliseconds remaining
+	increment   int64    // milliseconds added after each move
+	activeBoard [2]int   // which player index is active on each board
+	lastTick    [2]time.Time
+	ticker      *time.Ticker
+	stopCh      chan struct{}
+	onTimeout   func(playerIdx int)
 }
 
 func NewClockManager(initialMs, incrementMs int64, onTimeout func(int)) *ClockManager {

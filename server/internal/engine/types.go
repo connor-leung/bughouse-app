@@ -91,7 +91,7 @@ const (
 	Capture
 	EnPassant
 	Castle
-	Drop       // Bughouse: place a banked piece on an empty square
+	Drop // Bughouse: place a banked piece on an empty square
 	Promotion
 	PromotionCapture
 )
@@ -101,8 +101,8 @@ type Move struct {
 	From      Square
 	To        Square
 	Type      MoveType
-	Promotion Role  // set when Type == Promotion or PromotionCapture
-	DropRole  Role  // set when Type == Drop
+	Promotion Role // set when Type == Promotion or PromotionCapture
+	DropRole  Role // set when Type == Drop
 }
 
 func (m Move) IsNull() bool { return m.From == NoSquare && m.To == NoSquare }
