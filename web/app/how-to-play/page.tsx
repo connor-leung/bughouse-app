@@ -1,6 +1,21 @@
-'use client';
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import BackButton from '@/components/how-to-play/BackButton';
 
-import { useRouter } from 'next/navigation';
+export const metadata: Metadata = {
+  title: { absolute: 'How to Play Bughouse Chess — Rules & Strategy' },
+  description:
+    'Learn bughouse chess rules: team setup, how captured pieces are passed and dropped, drop notation, how games are won, and strategy tips for beginners.',
+  alternates: { canonical: '/how-to-play' },
+  openGraph: {
+    title: 'How to Play Bughouse Chess — Rules & Strategy',
+    description: 'Team setup, drop rules, notation, and strategy tips for 4-player bughouse chess.',
+    url: '/how-to-play',
+    type: 'article',
+    // Overriding openGraph drops the inherited file-based image, so re-add it
+    images: '/opengraph-image',
+  },
+};
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -24,22 +39,12 @@ function Rule({ icon, title, desc }: { icon: string; title: string; desc: string
 }
 
 export default function HowToPlayPage() {
-  const router = useRouter();
-
   return (
-    <div className="min-h-screen bg-base">
+    <main className="min-h-screen bg-base">
       <div className="max-w-xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
-          <button
-            onClick={() => router.back()}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-elevated hover:bg-hover border border-white/7 text-secondary hover:text-primary transition-colors"
-            aria-label="Go back"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 12H5M12 5l-7 7 7 7" />
-            </svg>
-          </button>
+          <BackButton />
           <div>
             <h1 className="text-2xl font-bold text-primary tracking-tight">How to Play</h1>
             <p className="text-secondary text-sm">Bughouse Chess</p>
@@ -202,17 +207,17 @@ export default function HowToPlayPage() {
 
         {/* Play now CTA */}
         <div className="mt-2 mb-8">
-          <button
-            onClick={() => router.push('/home')}
+          <Link
+            href="/home"
             className="w-full bg-accent hover:bg-accent-bright rounded-xl py-4 font-bold text-base transition-colors flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(45,111,240,0.3)]"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
               <path d="M13 2L4.5 13.5H11L10 22L20.5 9.5H14L13 2Z" />
             </svg>
             Play Now
-          </button>
+          </Link>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
