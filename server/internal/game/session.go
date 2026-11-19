@@ -1,7 +1,6 @@
 package game
 
 import (
-	"encoding/json"
 	"fmt"
 	"math/rand"
 	"sync"
@@ -347,7 +346,6 @@ func (s *Session) boardIdxForPlayer(userID string) (engine.BoardIndex, error) {
 }
 
 func (s *Session) isPlayerTurn(userID string, bIdx engine.BoardIndex, active engine.Color) bool {
-	b := s.game.Boards[bIdx]
 	for _, p := range s.Players {
 		if p == nil || p.UserID != userID {
 			continue
@@ -368,7 +366,6 @@ func (s *Session) isPlayerTurn(userID string, bIdx engine.BoardIndex, active eng
 			}
 		}
 	}
-	_ = b
 	return false
 }
 
@@ -463,6 +460,3 @@ func abs(x int) int {
 	}
 	return x
 }
-
-// Prevent unused import warnings during development
-var _ = json.Marshal
