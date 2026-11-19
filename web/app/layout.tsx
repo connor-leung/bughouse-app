@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 
 const BASE_URL = "https://bughouse-app.vercel.app";
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 export const metadata: Metadata = {
   title: {
@@ -90,6 +92,7 @@ export default function RootLayout({
       <body className="h-full bg-base text-primary antialiased font-['DM_Sans',sans-serif]">
         {children}
       </body>
+      {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
     </html>
   );
 }
