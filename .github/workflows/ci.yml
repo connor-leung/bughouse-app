@@ -6,8 +6,29 @@ on:
   pull_request:
 
 jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      server: ${{ steps.filter.outputs.server }}
+      web: ${{ steps.filter.outputs.web }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            server:
+              - 'server/**'
+              - '.github/workflows/ci.yml'
+            web:
+              - 'web/**'
+              - '.github/workflows/ci.yml'
+
   server:
     name: Server (Go)
+    needs: changes
+    if: needs.changes.outputs.server == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -26,6 +47,8 @@ jobs:
 
   web:
     name: Web (Next.js)
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
