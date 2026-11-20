@@ -123,7 +123,7 @@ export default function LobbyRoom({ lobbyId }: Props) {
         </button>
         <div>
           <h1 className="text-lg font-bold text-primary">{lobby.name}</h1>
-          <p className="text-xs text-secondary font-['DM_Mono']">
+          <p className="text-xs text-secondary font-mono">
             {tcLabel} &middot; {filled}/4 players
             {randomTeams && <span className="ml-1 text-accent-bright">&middot; Random teams</span>}
           </p>

@@ -56,7 +56,7 @@ export default function GameResultBanner({ result, myRole, players, rematchVotes
             />
           ))}
         </div>
-        <span className="text-muted text-xs font-['DM_Mono']">{rematchVotes.length}/4</span>
+        <span className="text-muted text-xs font-mono">{rematchVotes.length}/4</span>
 
         <button
           onClick={onRematch}
