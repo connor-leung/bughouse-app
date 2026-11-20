@@ -1,19 +1,29 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import BackButton from '@/components/how-to-play/BackButton';
+import { SITE_NAME } from '@/lib/site';
 
+const TITLE = 'How to Play Bughouse Chess — Rules & Strategy';
+const SOCIAL_DESCRIPTION = 'Team setup, drop rules, notation, and strategy tips for 4-player bughouse chess.';
+
+// openGraph and twitter replace the root layout's objects instead of merging,
+// so every field is set here. The image comes from ./opengraph-image.tsx.
 export const metadata: Metadata = {
-  title: { absolute: 'How to Play Bughouse Chess — Rules & Strategy' },
+  title: { absolute: TITLE },
   description:
     'Learn bughouse chess rules: team setup, how captured pieces are passed and dropped, drop notation, how games are won, and strategy tips for beginners.',
   alternates: { canonical: '/how-to-play' },
   openGraph: {
-    title: 'How to Play Bughouse Chess — Rules & Strategy',
-    description: 'Team setup, drop rules, notation, and strategy tips for 4-player bughouse chess.',
+    title: TITLE,
+    description: SOCIAL_DESCRIPTION,
     url: '/how-to-play',
+    siteName: SITE_NAME,
     type: 'article',
-    // Overriding openGraph drops the inherited file-based image, so re-add it
-    images: '/opengraph-image',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: TITLE,
+    description: SOCIAL_DESCRIPTION,
   },
 };
 
