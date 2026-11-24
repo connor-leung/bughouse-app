@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@theme inline {
+  /* Fonts (self-hosted via next/font in app/layout.tsx) */
+  --font-sans: var(--font-dm-sans), sans-serif;
+  --font-mono: var(--font-dm-mono), monospace;
+}
+
 @theme {
   /* Backgrounds */
   --color-base:           #080e1a;

@@ -1,17 +1,31 @@
 import type { Metadata, Viewport } from "next";
+import { DM_Mono, DM_Sans } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
-const BASE_URL = "https://bughouse-app.vercel.app";
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-dm-sans",
+});
+
+const dmMono = DM_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-dm-mono",
+});
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Bughouse Chess — Play Online Free",
     template: "%s | Bughouse Chess",
   },
-  description:
-    "Play bughouse chess online with friends. Free, real-time 4-player chess — no account required.",
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
   keywords: [
     "bughouse chess",
     "play bughouse online",
@@ -19,31 +33,20 @@ export const metadata: Metadata = {
     "bughouse chess online free",
     "online chess variant",
   ],
+  // The OG/Twitter image comes from app/opengraph-image.tsx
   openGraph: {
     title: "Bughouse Chess — Play Online Free",
-    description:
-      "Play bughouse chess online with friends. Free, real-time 4-player chess — no account required.",
-    url: BASE_URL,
-    siteName: "Bughouse Chess",
+    description: SITE_DESCRIPTION,
+    siteName: SITE_NAME,
     type: "website",
-    images: [
-      {
-        url: `${BASE_URL}/og-image.png`,
-        width: 1200,
-        height: 630,
-        alt: "Bughouse Chess — 4-player online chess",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Bughouse Chess — Play Online Free",
     description: "Play bughouse chess online with friends. Free, real-time 4-player chess.",
-    images: [`${BASE_URL}/og-image.png`],
   },
-  alternates: {
-    canonical: BASE_URL,
-  },
+  // Canonical URLs are set per page; a root-level canonical would be
+  // inherited by every route and mark them all as duplicates of "/".
   robots: {
     index: true,
     follow: true,
@@ -54,13 +57,14 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
+  themeColor: '#080e1a',
 };
 
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  name: "Bughouse Chess",
-  url: BASE_URL,
+  name: SITE_NAME,
+  url: SITE_URL,
   description:
     "Free real-time 4-player bughouse chess. Play online with friends, no account required.",
   applicationCategory: "GameApplication",
@@ -79,17 +83,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en" className={`h-full ${dmSans.variable} ${dmMono.variable}`}>
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
       </head>
-      <body className="h-full bg-base text-primary antialiased font-['DM_Sans',sans-serif]">
+      <body className="h-full bg-base text-primary antialiased font-sans">
         {children}
       </body>
       {GA_ID && <GoogleAnalytics gaId={GA_ID} />}

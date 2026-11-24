@@ -228,7 +228,7 @@ export default function GameLayout({ gameId }: Props) {
     <div className="min-h-screen bg-base flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2 bg-base/95 backdrop-blur-xl border-b border-white/7">
-        <span className="text-xs text-muted font-['DM_Mono']">{gameId.slice(0, 8)}</span>
+        <span className="text-xs text-muted font-mono">{gameId.slice(0, 8)}</span>
         <div className="flex items-center gap-2">
           <span className={`text-xs px-2 py-0.5 rounded-full border ${isConnected ? 'bg-success/12 text-success border-success/25' : 'bg-elevated text-muted border-white/7'}`}>
             {isConnected ? 'Live' : '...'}

@@ -21,7 +21,7 @@ export default function LobbyCard({ lobby, onJoin, onView }: Props) {
     <div className="bg-surface border border-white/7 hover:bg-elevated hover:border-white/12 rounded-xl p-4 flex items-center justify-between transition-colors cursor-pointer">
       <div>
         <p className="font-semibold text-primary text-sm">{lobby.name}</p>
-        <p className="text-xs text-secondary mt-1 font-['DM_Mono']">
+        <p className="text-xs text-secondary mt-1 font-mono">
           {tcLabel} &middot; {filled}/4
           {lobby.randomTeams && <span className="ml-1 text-accent-bright">&middot; Random</span>}
         </p>
