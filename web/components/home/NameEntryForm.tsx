@@ -1,17 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { setDisplayName, hasDisplayName } from '@/lib/identity';
+import { setDisplayName } from '@/lib/identity';
 
 export default function NameEntryForm() {
   const router = useRouter();
   const [name, setName] = useState('');
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (hasDisplayName()) router.replace('/home');
-  }, [router]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
