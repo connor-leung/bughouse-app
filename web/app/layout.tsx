@@ -1,20 +1,26 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Mono, DM_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+// Fonts are vendored (from Fontsource, OFL) rather than loaded via
+// next/font/google, which fails Turbopack builds on Vercel when Google
+// returns extensionless font URLs (vercel/next.js#99114).
+const dmSans = localFont({
+  src: "./fonts/DMSans-Variable.woff2",
+  weight: "100 1000",
+  style: "normal",
   variable: "--font-dm-sans",
 });
 
-const dmMono = DM_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
+const dmMono = localFont({
+  src: [
+    { path: "./fonts/DMMono-Regular.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/DMMono-Medium.woff2", weight: "500", style: "normal" },
+  ],
   variable: "--font-dm-mono",
 });
 
