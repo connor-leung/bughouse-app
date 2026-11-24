@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getUserId, getDisplayName } from '@/lib/identity';
+import { getUserId, getDisplayName, hasDisplayName } from '@/lib/identity';
 import { httpUrl, fetchWsTicket } from '@/lib/serverUrl';
 
 export default function HomeMenu() {
@@ -11,9 +11,15 @@ export default function HomeMenu() {
   const [error, setError] = useState('');
   const [displayName, setDisplayName] = useState('');
 
+  // Guard: players without a name (e.g. arriving from /how-to-play or a search
+  // result) pick one first.
   useEffect(() => {
+    if (!hasDisplayName()) {
+      router.replace('/name-entry');
+      return;
+    }
     setDisplayName(getDisplayName());
-  }, []);
+  }, [router]);
 
   async function startTestGame() {
     setLoading(true);
